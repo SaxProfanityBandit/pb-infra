@@ -12,7 +12,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: traefik
-        namespace: network
+        namespace: network #correct namespace.
   values:
     globalArguments:
       - "--global.sendanonymoususage=false"
