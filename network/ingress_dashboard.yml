@@ -15,5 +15,5 @@ spec:
         - name: traefik-dashboard-basicauth
           namespace: network
       services:
-        - name: api@internal
+        - name: traefik
           kind: TraefikService
