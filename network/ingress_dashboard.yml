@@ -9,7 +9,7 @@ spec:
   entryPoints:
   - websecure
   routes:
-    - match: Host(`traefik.profanitybandits.net`)
+    - match: PathPrefix(`/dashboard`) || PathPrefix(`/api`)
       kind: Rule
       middlewares:
         - name: traefik-dashboard-basicauth
