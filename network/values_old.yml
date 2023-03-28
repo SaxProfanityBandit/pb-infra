@@ -1,0 +1,42 @@
+deployment:
+  enabled: true
+  kind: Deployment
+  replicas: 1
+  labels:
+    app: traefik
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+
+ingressRoute:
+  dashboard:
+    enabled: true
+    matchRule: Host(`dashboard.internal`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+    entryPoints:
+      - traefik
+      - web
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    allowCrossNamespace: false
+    allowExternalNameServices: false
+    allowEmptyServices: false
+    namespaces:
+      - network
+
+  kubernetesIngress:
+    enabled: true
+    allowExternalNameServices: false
+    allowEmptyServices: false
+    # ingressClass: traefik-internal
+    # labelSelector: environment=production,method=traefik
+    namespaces:
+      - network
+    publishedService:
+      enabled: false
+
+additionalArguments:
+  - --api.insecure
+  - --providers.kubernetesingress
