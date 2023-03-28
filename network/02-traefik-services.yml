@@ -6,6 +6,7 @@ metadata:
 
 spec:
   type: LoadBalancer
+  allocateLoadBalancerNodePorts: false
   ports:
     - port: 8080
       targetPort: dashboard
@@ -20,6 +21,7 @@ metadata:
 
 spec:
   type: LoadBalancer
+  allocateLoadBalancerNodePorts: false
   ports:
     - targetPort: web
       port: 80
