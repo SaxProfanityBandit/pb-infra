@@ -1,3 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik
+  namespace: network
+
 globalArguments:
   - "--global.sendanonymoususage=false"
   - "--global.checknewversion=false"
@@ -6,7 +12,7 @@ additionalArguments:
   - "--serversTransport.insecureSkipVerify=true"
 
 deployment:
-  denabled: true
+  enabled: true
   replicas: 1
 
 ports:
