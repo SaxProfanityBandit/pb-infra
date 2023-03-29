@@ -80,6 +80,10 @@ spec:
                     - /data
                     - --allow-non-empty
                     - --allow-other
+                    - --uid
+                    - '421'
+                    - --gid
+                    - '421'
                   volumeMounts:
                     - mountPath: /config/rclone/
                       name: rclone-config
