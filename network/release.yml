@@ -14,19 +14,25 @@ spec:
         name: traefik
         namespace: network #correct namespace.
   values:
+    persistence:
+      enabled: true
+    certResolvers:
+      cert-resolver:
+        email: rsahlgren@gmail.com
+        httpChallenge:
+          entryPoint: web
+        storage: /data/acme.json
     globalArguments:
       - "--global.sendanonymoususage=false"
       - "--global.checknewversion=false"
     additionalArguments:
       - "--serversTransport.insecureSkipVerify=true"
-      - --certificatesresolvers.cert-resolver.acme.email=rsahlgren@gmail.com
-      - --certificatesresolvers.cert-resolver.acme.storage=acme.json
-      - --certificatesresolvers.cert-resolver.acme.httpchallenge.entrypoint=web
     deployment:
       enabled: true
       replicas: 1
     ports:
       web:
+        redirectTo: websecure
       websecure:
         tls:
           enabled: true
