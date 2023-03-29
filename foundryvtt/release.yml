@@ -84,13 +84,6 @@ spec:
                       name: data
                       readOnly: false
                       mountPropagation: Bidirectional
-                  lifecycle:
-                    preStop:
-                      exec:
-                        command:
-                          - /bin/sh
-                          - -c
-                          - fusermount -uz /data
                   securityContext:
                     privileged: true
                     capabilities:
