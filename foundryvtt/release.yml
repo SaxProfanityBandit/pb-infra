@@ -26,3 +26,5 @@ spec:
         existingSecret: foundryvtt-s3
     service:
       tls: false
+    persistence:
+      enabled: false
