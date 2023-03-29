@@ -19,6 +19,9 @@ spec:
       - "--global.checknewversion=false"
     additionalArguments:
       - "--serversTransport.insecureSkipVerify=true"
+      - --certificatesresolvers.cert-resolver.acme.email=rsahlgren@gmail.com
+      - --certificatesresolvers.cert-resolver.acme.storage=acme.json
+      - --certificatesresolvers.cert-resolver.acme.httpchallenge.entrypoint=web
     deployment:
       enabled: true
       replicas: 1
