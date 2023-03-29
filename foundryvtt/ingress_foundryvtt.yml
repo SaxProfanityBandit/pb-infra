@@ -14,5 +14,6 @@ spec:
     services:
       - name: foundryvtt-foundry-vtt
         kind: Service
+        port: http
   tls:
     certResolver: cert-resolver
