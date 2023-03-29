@@ -1,0 +1,61 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: foundryvtt
+  namespace: foundryvtt
+spec:
+  patches:
+    - patch: |
+        - op: replace
+          path: /spec/template/spec/containers/0/volumeMounts/0
+          value:
+            mountPath: /data
+            name: data
+            mountPropagation: HostToContainer
+        - op: add
+          path: /spec/template/spec/volumes/-
+          value:
+            name: rclone-config
+            secret:
+              secretName: rclone-config
+              items:
+                - key: rclone.conf
+                  path: rclone.conf
+        - op: add
+          path: /spec/template/spec/containers/-
+          value:
+            image: rclone/rclone
+            name: rclone
+            args:
+              - mount
+              - foundryvtt-s3:foundryvtt-data
+              - /data
+            volumeMounts:
+              - mountPath: /etc/rclone/
+                name: rclone-config
+                readOnly: true
+              - mountPath: /data
+                name: data
+                readOnly: false
+                mountPropagation: Bidirectional
+            lifecycle:
+              preStop:
+                exec:
+                  command:
+                    - /bin/sh
+                    - -c
+                    - fusermount -uz /data
+            securityContext:
+              privileged: true
+              capabilities:
+                add:
+                  - SYS_ADMIN
+            resources:
+              limits:
+                cpu: 100m
+                memory: 100Mi
+      target:
+        kind: Deployment
+        name: foundryvtt-foundry-vtt
+        namespace: foundryvtt
