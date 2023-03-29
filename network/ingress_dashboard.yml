@@ -7,7 +7,17 @@ metadata:
     kubernetes.io/ingress.class: traefik-external
 spec:
   entryPoints:
-  - websecure
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+certificatesResolvers:
+  cert-resolver:
+    acme:
+      email: rsahlgren@gmail.com
+      storage: acme.json
+      httpChallenge:
+        entryPoint: web
   routes:
   - kind: Rule
     match: Host(`traefik.profanitybandits.net`) && PathPrefix(`/dashboard`) || PathPrefix(`/api`)
