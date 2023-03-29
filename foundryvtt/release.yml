@@ -84,6 +84,10 @@ spec:
                     - '421'
                     - --gid
                     - '421'
+                    - --vfs-cache-mode
+                    - writes
+                    - --vfs-cache-max-age
+                    - 5m
                   volumeMounts:
                     - mountPath: /config/rclone/
                       name: rclone-config
