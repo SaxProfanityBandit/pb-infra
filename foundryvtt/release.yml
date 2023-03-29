@@ -31,14 +31,14 @@ spec:
       enabled: false
   postRenderers:
     - kustomize:
-        patches:
+        patchesJson6902:
           - target:
+              version: v1
               kind: Deployment
               name: foundryvtt-foundry-vtt
-              namespace: foundryvtt
-            patch: |
-              - op: replace
-                path: /spec/template/spec/containers/0/volumeMounts/0
+            patch:
+              - op: add
+                path: /spec/template/spec/containers/0/volumeMounts/-
                 value:
                   mountPath: /data
                   name: data
