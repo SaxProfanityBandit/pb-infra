@@ -22,12 +22,6 @@ spec:
     deployment:
       enabled: true
       replicas: 1
-    ports:
-      web:
-        redirectTo: websecure
-      websecure:
-        tls:
-          enabled: true
     ingressRoute:
       dashboard:
         enabled: false
