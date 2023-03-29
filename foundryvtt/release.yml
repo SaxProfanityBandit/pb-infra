@@ -14,6 +14,9 @@ spec:
         name: foundryvtt
         namespace: foundryvtt
   values:
+    container:
+      preserveOwner: '/data/Data.*'
+      timezone: 'Europe/Stockholm'
     foundryvtt:
       existingLicenseType: "account"
       existingSecret: foundryvtt-secrets
@@ -33,16 +36,21 @@ spec:
       tag: '10.291'
   postRenderers:
     - kustomize:
-        patches:
+        patchesJson6902:
           - target:
+              version: v1
               kind: Deployment
               name: foundryvtt-foundry-vtt
-              namespace: foundryvtt
-            patch: |
-              - op: replace
-                path: /spec/template/spec/containers/0/volumeMounts/0
+            patch:
+              - op: add
+                path: /spec/template/spec/containers/0/volumeMounts/-
                 value:
                   mountPath: /data
+                  name: tmpfiles
+              - op: add
+                path: /spec/template/spec/containers/0/volumeMounts/-
+                value:
+                  mountPath: /data/Data
                   name: data
                   mountPropagation: HostToContainer
               - op: add
@@ -55,6 +63,11 @@ spec:
                       - key: rclone.conf
                         path: rclone.conf
               - op: add
+                path: /spec/template/spec/volumes/-
+                value:
+                  name: tmpfiles
+                  emptyDir: {}
+              - op: add
                 path: /spec/template/spec/containers/-
                 value:
                   image: rclone/rclone
@@ -63,21 +76,16 @@ spec:
                     - mount
                     - foundryvtt-s3:foundryvtt-data
                     - /data
+                    - --allow-non-empty
+                    - --allow-other
                   volumeMounts:
-                    - mountPath: /etc/rclone/
+                    - mountPath: /config/rclone/
                       name: rclone-config
                       readOnly: true
                     - mountPath: /data
                       name: data
                       readOnly: false
                       mountPropagation: Bidirectional
-                  lifecycle:
-                    preStop:
-                      exec:
-                        command:
-                          - /bin/sh
-                          - -c
-                          - fusermount -uz /data
                   securityContext:
                     privileged: true
                     capabilities:
@@ -85,5 +93,12 @@ spec:
                         - SYS_ADMIN
                   resources:
                     limits:
-                      cpu: 100m
+                      cpu: 150m
                       memory: 100Mi
+              - op: add
+                path: /spec/template/spec/hostAliases
+                value:
+                  - ip: 10.255.132.92
+                    hostnames:
+                      - rgw.ctrl-c.liu.se
+                      - foundryvtt-data.rgw.ctrl-c.liu.se
