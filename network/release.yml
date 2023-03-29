@@ -14,6 +14,8 @@ spec:
         name: traefik
         namespace: network #correct namespace.
   values:
+    updateStrategy:
+      type: Recreate
     persistence:
       enabled: true
     certResolvers:
