@@ -11,4 +11,4 @@ spec:
     match: PathPrefix(`/dashboard`) || PathPrefix(`/api`)
     services:
     - kind: TraefikService
-      name: api@internalW
+      name: api@internal
