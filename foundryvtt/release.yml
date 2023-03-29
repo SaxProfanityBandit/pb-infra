@@ -62,7 +62,7 @@ spec:
                     - foundryvtt-s3:foundryvtt-data
                     - /data
                   volumeMounts:
-                    - mountPath: /etc/rclone/
+                    - mountPath: /config/rclone/
                       name: rclone-config
                       readOnly: true
                     - mountPath: /data
