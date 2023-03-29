@@ -29,6 +29,8 @@ spec:
       tls: false
     persistence:
       enabled: false
+    image:
+      tag: '10.291'
   postRenderers:
     - kustomize:
         patches:
