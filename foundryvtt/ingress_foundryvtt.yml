@@ -12,7 +12,7 @@ spec:
   - kind: Rule
     match: Host(`foundry.profanitybandits.net`)
     services:
-      - name: foundry-vtt
+      - name: foundryvtt-foundry-vtt
         kind: Service
   tls:
     certResolver: cert-resolver
