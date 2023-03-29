@@ -16,7 +16,7 @@ spec:
   values:
     foundryvtt:
       existingLicenseType: "account"
-      existingSecret: foundryvtt-account
+      existingUserSecret: foundryvtt-account
       adminPassword: foundryvtt-admin-pwd
       hostname: "foundry.profanitybandits.net"
       proxyPort: "443"
