@@ -44,14 +44,13 @@ spec:
                 path: /spec/template/spec/containers/0/volumeMounts/-
                 value:
                   mountPath: /data
-                  name: data
-                  mountPropagation: HostToContainer
+                  name: tmpfiles
               - op: add
                 path: /spec/template/spec/containers/0/volumeMounts/-
                 value:
-                  mountPath: /data/Logs
-                  name: tmpfiles
-                  readOnly: false
+                  mountPath: /data/Data
+                  name: data
+                  mountPropagation: HostToContainer
               - op: add
                 path: /spec/template/spec/volumes/-
                 value:
