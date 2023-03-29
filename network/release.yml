@@ -22,6 +22,11 @@ spec:
     deployment:
       enabled: true
       replicas: 1
+    ports:
+      - name: http
+        protocol: TCP
+        port: 80
+        targetPort: 80
     ingressRoute:
       dashboard:
         enabled: false
