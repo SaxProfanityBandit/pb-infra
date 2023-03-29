@@ -87,3 +87,10 @@ spec:
                     limits:
                       cpu: 100m
                       memory: 100Mi
+              - op: add
+                path: /spec/template/spec/hostAliases
+                value:
+                  - ip: 10.255.132.92
+                    hostnames:
+                      - rgw.ctrl-c.liu.se
+                      - foundryvtt-data.rgw.ctrl-c.liu.se
