@@ -61,6 +61,8 @@ spec:
                     - mount
                     - foundryvtt-s3:foundryvtt-data
                     - /data
+                    - --allow-non-empty
+                    - --allow-other
                   volumeMounts:
                     - mountPath: /config/rclone/
                       name: rclone-config
