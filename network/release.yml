@@ -27,7 +27,6 @@ spec:
       replicas: 1
     ports:
       web:
-        redirectTo: websecure
       websecure:
         tls:
           enabled: true
