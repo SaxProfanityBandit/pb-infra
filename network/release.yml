@@ -16,7 +16,7 @@ spec:
   values:
     updateStrategy:
       type: Recreate
-      rollingUpdate: nil
+      rollingUpdate: null
     persistence:
       enabled: true
     certResolvers:
