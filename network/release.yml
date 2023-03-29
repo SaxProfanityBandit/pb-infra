@@ -43,6 +43,10 @@ spec:
               touch /data/acme.json
               chown -v 65532:65532 /data/acme.json
               chmod -v 600 /data/acme.json
+          securityContext:
+            runAsNonRoot: false
+            runAsGroup: 0
+            runAsUser: 0
           volumeMounts:
             - name: data
               mountPath: /data
