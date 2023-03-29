@@ -3,11 +3,9 @@ kind: IngressRoute
 metadata:
   name: traefik-dashboard
   namespace: network
-  annotations:
-    kubernetes.io/ingress.class: traefik-external
 spec:
   entryPoints:
-  - web
+  - websecure
   routes:
     - match: Host(`traefik.profanitybandits.net`) && PathPrefix(`/api`)
       kind: Rule
