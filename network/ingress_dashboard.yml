@@ -10,7 +10,7 @@ spec:
   - websecure
   routes:
   - kind: Rule
-    match: Host(`traefik.profanitybandits.net`) && PathPrefix(`/api`)
+    match: Host(`traefik.profanitybandits.net`) && PathPrefix(`/dashboard`) || PathPrefix(`/api`)
     middlewares:
       - name: traefik-dashboard-basicauth
         namespace: network
