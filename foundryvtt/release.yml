@@ -15,7 +15,7 @@ spec:
         namespace: foundryvtt
   values:
     foundryvtt:
-      existingLicenseType: "licenseKey"
+      existingLicenseType: "account"
       existingSecret: foundryvtt-secrets
       existingUserSecret: foundryvtt-secrets
       hostname: "foundry.profanitybandits.net"
