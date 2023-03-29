@@ -18,6 +18,7 @@ spec:
       existingLicenseType: "account"
       existingSecret: foundryvtt-secrets
       existingUserSecret: foundryvtt-secrets
+      release_url: blahaj.lgbt
       hostname: "foundry.profanitybandits.net"
       proxyPort: "443"
       proxySSL: true
