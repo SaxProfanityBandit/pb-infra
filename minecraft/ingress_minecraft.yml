@@ -1,0 +1,19 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRouteUDP
+metadata:
+  name: minecraft
+  namespace: minecraft
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    address: ':25565/udp'
+  routes:
+  - kind: Rule
+    match: Host(`minecraft.profanitybandits.net`)
+    services:
+      - name: minecraft
+        kind: Service
+        port: 25565
+  tls:
+    certResolver: cert-resolver
