@@ -1,5 +1,5 @@
 apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRouteUDP
+kind: IngressRouteUDP #Test
 metadata:
   name: minecraft
   namespace: minecraft
