@@ -7,7 +7,8 @@ metadata:
     kubernetes.io/ingress.class: traefik-external
 spec:
   entryPoints:
-    address: ':25565/udp'
+    udp:
+      address: ':25565/udp'
   routes:
   - kind: Rule
     match: Host(`minecraft.profanitybandits.net`)
