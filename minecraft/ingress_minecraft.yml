@@ -16,5 +16,3 @@ spec:
       - name: minecraft
         kind: Service
         port: 25565
-  tls:
-    certResolver: cert-resolver
