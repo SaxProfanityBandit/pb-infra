@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: pb-minecraft-release
+  name: pb-minecraft-release #Test
   namespace: minecraft
 spec:
   interval: 5m
