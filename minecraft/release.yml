@@ -55,7 +55,7 @@ spec:
     - kustomize:
         patchesStrategicMerge:
           - kind: service
-            apiVersion: pb-minecraft-release-minecraft/v1
+            apiVersion: apps/v1
             metadata:
               name: pb-minecraft-release-minecraft
             spec:
