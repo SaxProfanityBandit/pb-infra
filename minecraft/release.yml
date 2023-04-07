@@ -40,3 +40,9 @@ spec:
       dataDir:
         enabled: true
         size: 20Gi
+    extraEnv:
+      # recommended rolling logs for saving disk
+      ENABLE_ROLLING_LOGS: true
+      ENABLE_WHITELIST: true
+      ENFORCE_WHITELIST: true
+      FORCE_WORLD_COPY: false
