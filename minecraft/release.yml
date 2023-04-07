@@ -30,7 +30,7 @@ spec:
       maxPlayers: 20
       maxWorldSize: 500000
       maxBuildHeight: 512
-      motd: "Welcome to Sax's StoneBlock 3 server!"
+      motd: "Its a Sax Server running Stoneblock 3!"
       servicePort: 25565
       serviceType: LoadBalancer
       generatorSettings:
