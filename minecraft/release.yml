@@ -53,11 +53,12 @@ spec:
       FORCE_WORLD_COPY: false
   postRenderers:
     - kustomize:
-        patches:
-          - target:
-              version: v1
-              kind: service
+        patchesStrategicMerge:
+          - kind: Service
+            apiVersion: apps/v1
+            metadata:
               name: pb-minecraft-release-minecraft
-            patch:
-              spec:
-                allocateNodePorts: FALSE
+            spec:
+              template:
+                spec:
+                  allocateNodePorts: false
