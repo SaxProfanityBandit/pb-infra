@@ -60,4 +60,4 @@ spec:
               name: pb-minecraft-release-minecraft
             patch:
               spec:
-                allocateNodePorts: false
+                allocateNodePorts: FALSE
