@@ -20,17 +20,22 @@ spec:
         cpu: 1000m
     minecraftServer:
       eula: "TRUE"
-      version: "1.19.4"
-      difficulty: normal
+      version: "1.18.2"
+      type: "FTBA"
+      ftbModpackId: 100
+      ftbModpackVersionId: 1.6.1
+      difficulty: hard
       whitelist: Sax1337
       ops: Sax1337
       maxPlayers: 20
-      maxWorldSize: 50000
+      maxWorldSize: 500000
       maxBuildHeight: 512
-      motd: "Welcome to Sax's Test Server!"
+      motd: "Welcome to Sax's StoneBlock 3 server!"
+      servicePort: 25565
+      serviceType: LoadBalancer
       generatorSettings:
-        worldSaveName: test
+        worldSaveName: stoneblock3
       persistence:
         dataDir:
           enabled: true
-          size: 10Gi
+          size: 20Gi
