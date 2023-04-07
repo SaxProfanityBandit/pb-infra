@@ -38,6 +38,7 @@ spec:
       serviceType: LoadBalancer
       loadBalancerIP: 130.236.253.195
       nodePort: null
+      allocateNodePorts: false
       externalIPs: null
       generatorSettings:
         worldSaveName: stoneblock3
