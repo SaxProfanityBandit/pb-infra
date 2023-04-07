@@ -15,6 +15,9 @@ spec:
         namespace: minecraft
   values:
     resources:
+      requests:
+        memory: 512Mi
+        cpu: 500m
       limits:
         memory: 2048Mi
         cpu: 1000m
