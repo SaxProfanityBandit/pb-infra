@@ -54,7 +54,7 @@ spec:
   postRenderers:
     - kustomize:
         patchesStrategicMerge:
-          - kind: Service
+          - kind: service
             apiVersion: pb-minecraft-release-minecraft/v1
             metadata:
               name: pb-minecraft-release-minecraft
