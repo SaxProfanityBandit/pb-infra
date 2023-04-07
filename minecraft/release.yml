@@ -38,7 +38,6 @@ spec:
       serviceType: LoadBalancer
       loadBalancerIP: 130.236.253.195
       nodePort: null
-      allocateNodePorts: false
       externalIPs: null
       generatorSettings:
         worldSaveName: stoneblock3
@@ -52,3 +51,13 @@ spec:
       ENABLE_WHITELIST: true
       ENFORCE_WHITELIST: true
       FORCE_WORLD_COPY: false
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              version: v1
+              kind: service
+              name: pb-minecraft-release-minecraft
+            patch:
+              spec:
+                allocateNodePorts: false
