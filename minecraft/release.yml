@@ -35,7 +35,7 @@ spec:
       serviceType: LoadBalancer
       generatorSettings:
         worldSaveName: stoneblock3
-      persistence:
-        dataDir:
-          enabled: true
-          size: 20Gi
+    persistence:
+      dataDir:
+        enabled: true
+        size: 20Gi
