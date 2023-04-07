@@ -22,8 +22,8 @@ spec:
       eula: "TRUE"
       version: "1.18.2"
       type: "FTBA"
-      ftbModpackId: 100
-      ftbModpackVersionId: 1.6.1
+      ftbModpackId: "100"
+      ftbModpackVersionId: "1.6.1"
       difficulty: hard
       whitelist: Sax1337
       ops: Sax1337
