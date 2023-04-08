@@ -22,10 +22,11 @@ spec:
         memory: 512Mi
         cpu: 500m
       limits:
-        memory: 8Gi
+        memory: 5120Mi
         cpu: 4000m
     minecraftServer:
       eula: "TRUE"
+      memory: 4096M
       version: "1.18.2"
       type: "FTBA"
       ftbModpackId: 100
