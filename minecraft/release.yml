@@ -16,7 +16,7 @@ spec:
   values:
     startupProbe:
       enabled: true
-      failureThreshold: 120
+      failureThreshold: 240
     resources:
       requests:
         memory: 512Mi
