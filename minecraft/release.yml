@@ -14,6 +14,9 @@ spec:
         name: minecraft-repo
         namespace: minecraft
   values:
+    startupProbe:
+      enabled: true
+      failureThreshold: 60
     resources:
       requests:
         memory: 512Mi
@@ -51,3 +54,12 @@ spec:
       ENABLE_WHITELIST: true
       ENFORCE_WHITELIST: true
       FORCE_WORLD_COPY: false
+  postRenderers:
+    - kustomize:
+        patchesStrategicMerge:
+          - kind: service
+            apiVersion: v1
+            metadata:
+              name: pb-minecraft-release-minecraft
+            spec:
+              allocateLoadBalancerNodePorts: false
