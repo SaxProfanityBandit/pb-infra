@@ -40,7 +40,6 @@ spec:
       servicePort: 25565
       serviceType: LoadBalancer
       externalTrafficPolicy: Local
-      nodePort: null
       externalIPs: null
       generatorSettings:
         worldSaveName: stoneblock3
