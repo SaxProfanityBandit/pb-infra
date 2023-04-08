@@ -19,14 +19,14 @@ spec:
       failureThreshold: 360
     resources:
       requests:
-        memory: 512Mi
+        memory: 1024Mi
         cpu: 500m
       limits:
-        memory: 5120Mi
-        cpu: 4000m
+        memory: 9216Mi
+        cpu: 8000m
     minecraftServer:
       eula: "TRUE"
-      memory: 4096M
+      memory: 8192M
       version: "1.18.2"
       type: "FTBA"
       ftbModpackId: 100
