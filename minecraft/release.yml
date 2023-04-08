@@ -56,10 +56,12 @@ spec:
       FORCE_WORLD_COPY: false
   postRenderers:
     - kustomize:
-        patchesStrategicMerge:
-          - kind: service
-            apiVersion: v1
-            metadata:
+        patchesJson6902:
+          - target:
+              version: v1
+              kind: Service
               name: pb-minecraft-release-minecraft
-            spec:
-              allocateLoadBalancerNodePorts: false
+            patch:
+              - op: add
+                path: /spec/allocateLoadBalancerNodePorts
+                value: false
