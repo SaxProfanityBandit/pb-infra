@@ -16,14 +16,14 @@ spec:
   values:
     startupProbe:
       enabled: true
-      failureThreshold: 240
+      failureThreshold: 360
     resources:
       requests:
         memory: 512Mi
         cpu: 500m
       limits:
-        memory: 2Gi
-        cpu: 1000m
+        memory: 4Gi
+        cpu: 2000m
     minecraftServer:
       eula: "TRUE"
       version: "1.18.2"
