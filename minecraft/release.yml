@@ -22,8 +22,8 @@ spec:
         memory: 512Mi
         cpu: 500m
       limits:
-        memory: 4Gi
-        cpu: 2000m
+        memory: 8Gi
+        cpu: 4000m
     minecraftServer:
       eula: "TRUE"
       version: "1.18.2"
@@ -31,8 +31,8 @@ spec:
       ftbModpackId: 100
       ftbModpackVersionId: 1.6.1
       difficulty: hard
-      whitelist: Sax1337
-      ops: Sax1337
+      whitelist: Saxie
+      ops: Saxie
       maxPlayers: 20
       maxWorldSize: 500000
       maxBuildHeight: 512
