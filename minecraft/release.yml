@@ -41,8 +41,7 @@ spec:
       serviceType: LoadBalancer
       externalTrafficPolicy: Local
       externalIPs: null
-      generatorSettings:
-        worldSaveName: stoneblock3
+      worldSaveName: stoneblock3
     persistence:
       dataDir:
         enabled: true
