@@ -39,7 +39,6 @@ spec:
       motd: "Its a Sax Server running Stoneblock 3!"
       servicePort: 25565
       serviceType: LoadBalancer
-      loadBalancerIP: 130.236.253.195
       nodePort: null
       externalIPs: null
       generatorSettings:
