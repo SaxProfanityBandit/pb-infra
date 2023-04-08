@@ -51,14 +51,3 @@ spec:
       ENABLE_WHITELIST: true
       ENFORCE_WHITELIST: true
       FORCE_WORLD_COPY: false
-  postRenderers:
-    - kustomize:
-        patchesStrategicMerge:
-          - kind: service
-            apiVersion: v1
-            metadata:
-              name: pb-minecraft-release-minecraft
-            spec:
-              template:
-                spec:
-                  allocateNodePorts: false
