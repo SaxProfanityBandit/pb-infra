@@ -103,7 +103,7 @@ spec:
                         - SYS_ADMIN
                   resources:
                     limits:
-                      cpu: 600m
+                      cpu: 800m
                       memory: 512Mi
               - op: add
                 path: /spec/template/spec/hostAliases
