@@ -28,7 +28,7 @@ spec:
       eula: "TRUE"
       memory: 16384M
       version: "1.19.2"
-      type: "CURSEFORGE"
+      type: "AUTO_CURSEFORGE"
       autoCurseForge:
         apiKey:
           existingSecret: "curse-api"
