@@ -51,7 +51,7 @@ spec:
     persistence:
       dataDir:
         enabled: true
-        size: 40Gi
+        size: 50Gi
     extraEnv:
       # recommended rolling logs for saving disk
       ENABLE_ROLLING_LOGS: true
