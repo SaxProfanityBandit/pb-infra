@@ -33,7 +33,7 @@ spec:
         apiKey:
           existingSecret: "curse-api"
           secretKey: ProfanityBandits
-        includeMods: [240630, 684718]
+        includeMods: [240630, 684718, 267193, "chunkpregenerator"]
         pageUrl: "https://www.curseforge.com/minecraft/modpacks/steam-punk"
         parallelDownloads: 4
         overridesSkipExisting: false
