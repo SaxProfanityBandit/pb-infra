@@ -33,6 +33,7 @@ spec:
         apiKey:
           existingSecret: "curse-api"
           secretKey: ProfanityBandits
+        excludeMods: [913587, "ryoamiclights"]
         pageUrl: "https://www.curseforge.com/minecraft/modpacks/steam-punk"
         parallelDownloads: 4
         overridesSkipExisting: false
@@ -51,7 +52,7 @@ spec:
     persistence:
       dataDir:
         enabled: true
-        Size: 40Gi
+        Size: 50Gi
     extraEnv:
       # recommended rolling logs for saving disk
       ENABLE_ROLLING_LOGS: true
