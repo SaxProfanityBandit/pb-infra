@@ -33,7 +33,7 @@ spec:
         apiKey:
           existingSecret: "curse-api"
           secretKey: ProfanityBandits
-        excludeMods: [913587, "ryoamiclights"]
+        includeMods: [240630, 684718]
         pageUrl: "https://www.curseforge.com/minecraft/modpacks/steam-punk"
         parallelDownloads: 4
         overridesSkipExisting: false
