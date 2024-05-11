@@ -29,18 +29,12 @@ spec:
       memory: 16384M
       version: "1.19.2"
       type: "CURSEFORGE"
-      # Config for AUTO_CURSEFORGE server type
       autoCurseForge:
-      # CurseForge API key obtained from developer console
         apiKey:
           existingSecret: "curse-api"
           secretKey: ProfanityBandits
-        # Link to modpack in general or a specific file
-        # NOTE: In case of specific file - do not point at server file
         pageUrl: "https://www.curseforge.com/minecraft/modpacks/steam-punk"
         parallelDownloads: 4
-        # Set to skip files in modpack "overrides" folder that would replace existing files
-        # NOTE: World data is always skipped if present
         overridesSkipExisting: false
       difficulty: normal
       whitelist: Saxie
