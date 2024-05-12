@@ -15,7 +15,8 @@ spec:
   spec:
     volumes:
       - name: tes3mp-data
-        capacity: 30Gi
+        persistentVolumeClaim:
+          claimName: storage
     containers:
       - name: tes3mp-server
         image: grimkriegor/tes3mp-forge
