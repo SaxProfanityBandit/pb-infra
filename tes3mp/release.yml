@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-   name: tes3mp-server
-   namespace: tes3mp
+  name: tes3mp-server
+  namespace: tes3mp
 spec:
   replicas: 1
   selector:
