@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-   name: tes3mp-server-service
-   namespace: tes3mp
+  name: tes3mp-server-service
+  namespace: tes3mp
 spec:
    type: NodePort
    selector:
