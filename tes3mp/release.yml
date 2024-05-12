@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: tes3mp-server
+   namespace: tes3mp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        tes3mp: server
+  template:
+    metadata:
+        labels:
+          tes3mp: server
+  spec:
+    containers:
+      - name: tes3mp-server
+        image: ich777/docker-openmw-tes3mp
+        imagePullPolicy: Always
+        env:
+          GAME_V: latest
+          UID: 99
+          GID: 100
+          UMASK: 0000
+          DATA_PERM: 770
+        volumeMounts:
+          - mountPath: /data
+            name: data
+            readOnly: false
+            mountPropagation: Bidirectional
+        args: ["--volume", "/data"]
