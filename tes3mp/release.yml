@@ -15,17 +15,11 @@ spec:
   spec:
     containers:
       - name: tes3mp-server
-        image: ich777/docker-openmw-tes3mp
+        image: grimkriegor/tes3mp-forge
         imagePullPolicy: Always
-        env:
-          GAME_V: latest
-          UID: 99
-          GID: 100
-          UMASK: 0000
-          DATA_PERM: 770
         volumeMounts:
           - mountPath: /data
             name: data
             readOnly: false
             mountPropagation: Bidirectional
-        args: ["--volume", "/data"]
+        args: ["-v", "/data", "--install", "--make-package", "--version "0.8.1", "--server-only"]
