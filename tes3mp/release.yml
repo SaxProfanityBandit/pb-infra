@@ -17,6 +17,13 @@ spec:
       - name: tes3mp-data
         persistentVolumeClaim:
           claimName: tes3mp-storage
+    resources: 
+      requests:
+        memory: 8192Mi
+        cpu: 4000m
+      limits:
+        memory: 16384Mi
+        cpu: 8000m
     containers:
       - name: tes3mp-server
         image: grimkriegor/tes3mp-forge
@@ -26,3 +33,14 @@ spec:
             name: tes3mp-data
             readOnly: false
         args: ["-v", "/data", "--install", "--make-package", "--version "0.8.1", "--server-only"]
+        resources:
+          limits:
+            memory: 12288Mi
+            cpu: 6000m
+    chart: sftp
+      version: '0.19.0'
+      sourceRef:
+        kind: HelmRepository
+        name: sftp-repo
+        namespace: tes3mp
+    values:
