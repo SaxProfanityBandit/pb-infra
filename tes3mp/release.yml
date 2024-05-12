@@ -13,13 +13,15 @@ spec:
         labels:
           tes3mp: server
   spec:
+    volumes:
+      - name: tes3mp-data
+        capacity: 30Gi
     containers:
       - name: tes3mp-server
         image: grimkriegor/tes3mp-forge
         imagePullPolicy: Always
         volumeMounts:
           - mountPath: /data
-            name: data
+            name: tes3mp-data
             readOnly: false
-            mountPropagation: Bidirectional
         args: ["-v", "/data", "--install", "--make-package", "--version "0.8.1", "--server-only"]
