@@ -16,7 +16,7 @@ spec:
     volumes:
       - name: tes3mp-data
         persistentVolumeClaim:
-          claimName: storage
+          claimName: tes3mp-storage
     containers:
       - name: tes3mp-server
         image: grimkriegor/tes3mp-forge
