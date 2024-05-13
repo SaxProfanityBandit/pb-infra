@@ -20,10 +20,10 @@ spec:
       resources: 
         requests:
           memory: 8192Mi
-          cpu: 4000m
+          cpu: 1000m
         limits:
           memory: 16384Mi
-          cpu: 8000m
+          cpu: 3000m
       containers:
         - name: tes3mp-server
           image: grimkriegor/tes3mp-forge
@@ -36,4 +36,4 @@ spec:
           resources:
             limits:
               memory: 12288Mi
-              cpu: 6000m
+              cpu: 3000m
