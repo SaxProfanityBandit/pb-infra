@@ -4,10 +4,12 @@ metadata:
   name: tes3mp-server-service
   namespace: tes3mp
 spec:
-   type: NodePort
+   type: LoadBalancer
+   allocateLoadBalancerNodePorts: false
+   externalTrafficPolicy: Local
+   ipFamilyPolicy: PreferDualStack
    selector:
       tes3mp: server
    ports:
       - port: 25565
         targetPort: 25565
-        nodePort: 25566
