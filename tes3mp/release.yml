@@ -40,7 +40,7 @@ spec:
               name: tes3mp-data
               readOnly: false
               #Do I remove --make-package?
-          args: ["--version", "0.8.1", "--install", "--make-package", "--server-only"]
+          args: ["--version", "0.8.1", "--install", "--server-only"]
           resources:
             limits:
               memory: 8192Mi
