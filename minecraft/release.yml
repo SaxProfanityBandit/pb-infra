@@ -23,7 +23,7 @@ spec:
         cpu: 2000m
       limits:
         memory: 32768Mi
-        cpu: 8000m
+        cpu: 4000m
     minecraftServer:
       eula: "TRUE"
       memory: 16384M
