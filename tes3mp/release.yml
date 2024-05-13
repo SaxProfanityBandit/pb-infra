@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tes3mp-server
+  namespace: tes3mp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        tes3mp: server
+  template:
+    metadata:
+        labels:
+          tes3mp: server
+  spec:
+    volumes:
+      - name: tes3mp-data
+        persistentVolumeClaim:
+          claimName: tes3mp-storage
+    resources: 
+      requests:
+        memory: 8192Mi
+        cpu: 4000m
+      limits:
+        memory: 16384Mi
+        cpu: 8000m
+    containers:
+      - name: tes3mp-server
+        image: grimkriegor/tes3mp-forge
+        imagePullPolicy: Always
+        volumeMounts:
+          - mountPath: /data
+            name: tes3mp-data
+            readOnly: false
+        args: ["-v", "/data", "--install", "--make-package", "--version "0.8.1", "--server-only"]
+        resources:
+          limits:
+            memory: 12288Mi
+            cpu: 6000m
