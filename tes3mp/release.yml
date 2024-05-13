@@ -39,6 +39,7 @@ spec:
               subPath: data
               name: tes3mp-data
               readOnly: false
+              #Do I remove --make-package?
           args: ["--version", "0.8.1", "--install", "--make-package", "--server-only"]
           resources:
             limits:
