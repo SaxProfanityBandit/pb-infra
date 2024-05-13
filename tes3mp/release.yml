@@ -6,7 +6,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: Recreate
+    type: Recreate #Doesn't work?
   selector:
     matchLabels:
         tes3mp: server
