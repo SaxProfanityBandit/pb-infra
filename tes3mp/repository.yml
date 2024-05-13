@@ -1,8 +1,0 @@
-apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
-metadata:
-  name: sftp-repo
-  namespace: tes3mp
-spec:
-  interval: 1m
-  url: https://artifacthub.io/packages/helm/sagikazarmark/sftpgo
