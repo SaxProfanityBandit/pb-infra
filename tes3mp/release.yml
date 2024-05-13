@@ -5,6 +5,8 @@ metadata:
   namespace: tes3mp
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
         tes3mp: server
@@ -29,11 +31,16 @@ spec:
           image: grimkriegor/tes3mp-forge
           imagePullPolicy: Always
           volumeMounts:
-            - mountPath: /data
+            - mountPath: /build
+              subPath: build
               name: tes3mp-data
               readOnly: false
-          args: ["-v", "/data", "--version", "0.8.1", "--install", "--make-package", "--server-only"]
+            - mountPath: /data
+              subPath: data
+              name: tes3mp-data
+              readOnly: false
+          args: ["--version", "0.8.1", "--install", "--make-package", "--server-only"]
           resources:
             limits:
-              memory: 12288Mi
+              memory: 8192Mi
               cpu: 2000m
