@@ -19,10 +19,10 @@ spec:
       failureThreshold: 360
     resources:
       requests:
-        memory: 16384Mi
+        memory: 8192Mi
         cpu: 1000m
       limits:
-        memory: 32768Mi
+        memory: 16384Mi
         cpu: 2000m
     minecraftServer:
       eula: "TRUE"
