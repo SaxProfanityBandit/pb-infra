@@ -32,7 +32,12 @@ spec:
           - mountPath: /data
             name: tes3mp-data
             readOnly: false
-        args: ["-v", "/data", "--install", "--make-package", "--version "0.8.1", "--server-only"]
+        args: 
+          - "-v /data"
+          - "--install"
+          - "--make-package"
+          - "--version 0.8.1"
+          - "--server-only"
         resources:
           limits:
             memory: 12288Mi
