@@ -32,7 +32,8 @@ spec:
     service:
       tls: false
     persistence:
-      enabled: false
+      enabled: true
+      size: 32Gi
     image:
       tag: release
       pullPolicy: Always
@@ -47,13 +48,8 @@ spec:
               - op: add
                 path: /spec/template/spec/containers/0/volumeMounts/-
                 value:
-                  mountPath: /data
-                  name: tmpfiles
-              - op: add
-                path: /spec/template/spec/containers/0/volumeMounts/-
-                value:
-                  mountPath: /data/Data
-                  name: data
+                  mountPath: /oldData
+                  name: oldData
                   mountPropagation: HostToContainer
               - op: add
                 path: /spec/template/spec/volumes/-
@@ -67,7 +63,7 @@ spec:
               - op: add
                 path: /spec/template/spec/volumes/-
                 value:
-                  name: tmpfiles
+                  name: oldData
                   emptyDir: {}
               - op: add
                 path: /spec/template/spec/containers/-
@@ -93,7 +89,7 @@ spec:
                       name: rclone-config
                       readOnly: true
                     - mountPath: /data
-                      name: data
+                      name: oldData
                       readOnly: false
                       mountPropagation: Bidirectional
                   securityContext:
