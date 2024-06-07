@@ -34,7 +34,7 @@ spec:
     persistence:
       enabled: true
       size: 32Gi
-      storageClass: '-'
+      storageClass: 'rook-ceph'
     image:
       tag: release
       pullPolicy: Always
