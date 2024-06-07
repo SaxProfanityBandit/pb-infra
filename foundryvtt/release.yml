@@ -48,8 +48,8 @@ spec:
               - op: add
                 path: /spec/template/spec/containers/0/volumeMounts/-
                 value:
-                  mountPath: /oldData
-                  name: oldData
+                  mountPath: /old-data
+                  name: old-data
                   mountPropagation: HostToContainer
               - op: add
                 path: /spec/template/spec/volumes/-
@@ -63,7 +63,7 @@ spec:
               - op: add
                 path: /spec/template/spec/volumes/-
                 value:
-                  name: oldData
+                  name: old-data
                   emptyDir: {}
               - op: add
                 path: /spec/template/spec/containers/-
@@ -89,7 +89,7 @@ spec:
                       name: rclone-config
                       readOnly: true
                     - mountPath: /data
-                      name: oldData
+                      name: old-data
                       readOnly: false
                       mountPropagation: Bidirectional
                   securityContext:
