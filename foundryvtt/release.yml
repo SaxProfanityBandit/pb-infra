@@ -48,13 +48,8 @@ spec:
               - op: add
                 path: /spec/template/spec/containers/0/volumeMounts/-
                 value:
-                  mountPath: /data
-                  name: tmpfiles
-              - op: add
-                path: /spec/template/spec/containers/0/volumeMounts/-
-                value:
-                  mountPath: /data/oldData
-                  name: data
+                  mountPath: /oldData
+                  name: oldData
                   mountPropagation: HostToContainer
               - op: add
                 path: /spec/template/spec/volumes/-
