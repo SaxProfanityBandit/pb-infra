@@ -15,8 +15,8 @@ spec:
         namespace: foundryvtt
   values:
     container:
-      preserveOwner: '/data/Data.*'
       timezone: 'Europe/Stockholm'
+      preserveConfig: true
     foundryvtt:
       existingLicenseType: "account"
       existingSecret: foundryvtt-secrets
