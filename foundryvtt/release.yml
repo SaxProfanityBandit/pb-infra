@@ -33,6 +33,7 @@ spec:
       tls: false
     persistence:
       enabled: true
+      size: 32Gi
     image:
       tag: release
       pullPolicy: Always
