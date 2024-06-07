@@ -63,7 +63,7 @@ spec:
               - op: add
                 path: /spec/template/spec/volumes/-
                 value:
-                  name: tmpfiles
+                  name: oldData
                   emptyDir: {}
               - op: add
                 path: /spec/template/spec/containers/-
@@ -88,8 +88,8 @@ spec:
                     - mountPath: /config/rclone/
                       name: rclone-config
                       readOnly: true
-                    - mountPath: /data
-                      name: data
+                    - mountPath: /oldData
+                      name: oldData
                       readOnly: false
                       mountPropagation: Bidirectional
                   securityContext:
