@@ -88,7 +88,7 @@ spec:
                     - mountPath: /config/rclone/
                       name: rclone-config
                       readOnly: true
-                    - mountPath: /oldData
+                    - mountPath: /data
                       name: oldData
                       readOnly: false
                       mountPropagation: Bidirectional
