@@ -32,7 +32,7 @@ spec:
     service:
       tls: false
     persistence:
-      enabled: false
+      enabled: true
     image:
       tag: release
       pullPolicy: Always
@@ -52,7 +52,7 @@ spec:
               - op: add
                 path: /spec/template/spec/containers/0/volumeMounts/-
                 value:
-                  mountPath: /data/Data
+                  mountPath: /data/oldData
                   name: data
                   mountPropagation: HostToContainer
               - op: add
