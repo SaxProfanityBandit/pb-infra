@@ -28,7 +28,7 @@ spec:
       s3:
         enabled: true
         existingSecret: foundryvtt-s3
-      version: '12.327' #remember to doublecheck
+      version: '12.330' #remember to doublecheck
     service:
       tls: false
     persistence:
