@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: minecraft
-      version: '4.17.0'
+      version: '4.23.1'
       sourceRef:
         kind: HelmRepository
         name: minecraft-repo
@@ -27,14 +27,14 @@ spec:
     minecraftServer:
       eula: "TRUE"
       memory: 16384M
-      version: "1.19.2"
+      version: "1.20.1"
       type: "AUTO_CURSEFORGE"
       autoCurseForge:
         apiKey:
           existingSecret: "curse-api"
           secretKey: ProfanityBandits
-        includeMods: [240630, 684718, 267193, "chunkpregenerator"]
-        pageUrl: "https://www.curseforge.com/minecraft/modpacks/steam-punk"
+        includeMods: ["chunkpregenerator"]
+        pageUrl: "https://www.curseforge.com/minecraft/modpacks/industrial-village"
         parallelDownloads: 4
         overridesSkipExisting: false
       difficulty: normal
@@ -43,12 +43,12 @@ spec:
       maxPlayers: 20
       maxWorldSize: 5000000
       maxBuildHeight: 512
-      motd: "Sax's SteamPunk Server! Choo-Choo!"
+      motd: "Sax's Minecraft Server!"
       servicePort: 25565
       serviceType: LoadBalancer
       externalTrafficPolicy: Local
       externalIPs: null
-      worldSaveName: steampunk
+      worldSaveName: industrialvillage
     persistence:
       dataDir:
         enabled: true
