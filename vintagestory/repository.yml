@@ -1,8 +1,10 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
+kind: OCIRepository
 metadata:
   name: vintagestory-repo
   namespace: vintagestory
 spec:
   interval: 1m
   url: oci://tccr.io/truecharts/vintage-story
+  ref:
+    tag: latest
