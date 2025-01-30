@@ -6,5 +6,3 @@ metadata:
 spec:
   interval: 1m
   url: oci://tccr.io/truecharts/vintage-story
-  ref:
-    tag: latest
