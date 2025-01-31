@@ -1,41 +1,39 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: pb-vintagestory-release
-  namespace: vintagestory
+    name: pb-vintagestory-release
+    namespace: vintagestory
 spec:
-  interval: 5m
-  chart:
-    spec:
-        chartRef:
-            kind: OCIRepository
-            name: vintagestory
-            namespace: stalwart
-  values:
-    persistence:
-      serverfiles:
-        enabled: true
-        mountPath: /vintagestory
-    portal:
-      open:
-        enabled: true
-    securityContext:
-        container:
-          readOnlyRootFilesystem: false
-          runAsGroup: 0
-          runAsUser: 0
-    service:
-      main:
-        ports:
-          main:
-            port: 42420
-            protocol: tcp
-            targetPort: 42420
-    workload:
-      main:
-        podSpec:
-          containers:
+    interval: 5m
+    chartRef:
+        kind: OCIRepository
+        name: vintagestory
+        namespace: vintagestory
+    values:
+        persistence:
+            serverfiles:
+            enabled: true
+            mountPath: /vintagestory
+        portal:
+            open:
+            enabled: true
+        securityContext:
+            container:
+                readOnlyRootFilesystem: false
+                runAsGroup: 0
+                runAsUser: 0
+        service:
             main:
-              env:
-                GAME_PARAMS: ""
-                VS_CHANNEL: stable
+            ports:
+                main:
+                port: 42420
+                protocol: tcp
+                targetPort: 42420
+        workload:
+            main:
+            podSpec:
+                containers:
+                main:
+                    env:
+                    GAME_PARAMS: ""
+                    VS_CHANNEL: stable
