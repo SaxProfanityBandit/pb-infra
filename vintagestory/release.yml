@@ -7,11 +7,10 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: vintagestory
-      sourceRef:
-        kind: HelmRepository
-        name: vintagestory-repo
-        namespace: vintagestory
+        chartRef:
+            kind: OCIRepository
+            name: vintagestory
+            namespace: stalwart
   values:
     persistence:
       serverfiles:
