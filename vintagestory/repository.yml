@@ -8,4 +8,3 @@ spec:
     ref:
         semver: ~0
     url: oci://tccr.io/truecharts/vintage-story
-
