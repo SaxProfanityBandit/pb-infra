@@ -1,10 +1,9 @@
 apiVersion: source.toolkit.fluxcd.io/v2
 kind: OCIRepository
 metadata:
-    name: vintagestory
+    name: vintagestory-charts
     namespace: vintagestory
 spec:
-    interval: 1m
-    ref:
-        semver: ~0
-    url: oci://tccr.io/truecharts/vintage-story
+    interval: 5m
+    type: oci
+    url: oci://tccr.io/truecharts
