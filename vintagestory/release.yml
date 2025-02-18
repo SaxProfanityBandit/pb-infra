@@ -10,7 +10,7 @@ spec:
         reconcileStrategy: ChartVersion
         sourceRef:
           kind: HelmRepository
-          name: vintagestory-charts
+          name: truecharts
         version: ~0
     interval: 5m
     values:
