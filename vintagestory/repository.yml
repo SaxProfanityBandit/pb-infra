@@ -1,7 +1,7 @@
 apiVersion: source.toolkit.fluxcd.io/v2
 kind: HelmRepository
 metadata:
-    name: true-charts
+    name: truecharts
     namespace: vintagestory
 spec:
     interval: 5m
