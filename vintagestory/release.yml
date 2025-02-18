@@ -4,11 +4,15 @@ metadata:
     name: pb-vintagestory-release
     namespace: vintagestory
 spec:
+    chart:
+      spec:
+        chart: vintage-story
+        reconcileStrategy: ChartVersion
+        sourceRef:
+          kind: HelmRepository
+          name: vintagestory-charts
+        version: ~0
     interval: 5m
-    chartRef:
-        kind: OCIRepository
-        name: vintagestory
-        namespace: vintagestory
     values:
         persistence:
             serverfiles:
