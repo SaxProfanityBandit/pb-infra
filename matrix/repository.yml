@@ -1,0 +1,9 @@
+#https://artifacthub.io/packages/helm/ananace-charts/matrix-synapse
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: matrix-charts
+  namespace: matrix
+spec:
+  interval: 1m
+  url: https://ananace.gitlab.io/charts
