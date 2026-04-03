@@ -1,0 +1,25 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: stalwart-mail
+  namespace: mailserver
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`mail.sax.lgbt`)
+      services:
+        - name: stalwart-mailserver
+          kind: Service
+          port: http
+    - kind: Rule
+      match: Host(`mail.profanitybandits.net`)
+      services:
+        - name: stalwart-mailserver
+          kind: Service
+          port: http
+  tls:
+    certResolver: cert-resolver
