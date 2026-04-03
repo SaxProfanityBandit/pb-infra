@@ -2,6 +2,7 @@
 
 docs/
 
+mailserver/stalwart-mail-private-values.yaml
 mailserver/private-values.yml
 mailserver/*-private.yaml
 
