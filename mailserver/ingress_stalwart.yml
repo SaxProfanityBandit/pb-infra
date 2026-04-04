@@ -15,11 +15,7 @@ spec:
         - name: stalwart-mailserver
           kind: Service
           port: http
-    - kind: Rule
-      match: Host(`mail.profanitybandits.net`)
-      services:
-        - name: stalwart-mailserver
-          kind: Service
-          port: http
   tls:
     certResolver: cert-resolver
+    domains:
+      - main: mail.sax.lgbt
