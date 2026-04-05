@@ -5,3 +5,4 @@ resources:
   - repository.yml
   - release.yml
   - ingress_stalwart.yml
+  - ingress_tcp_stalwart.yml
