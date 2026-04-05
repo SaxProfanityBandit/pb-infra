@@ -11,7 +11,7 @@ spec:
   - web
   routes:
   - kind: Rule
-    match: Host(`traefik.profanitybandits.net`) && PathPrefix(`/dashboard`) || PathPrefix(`/api`)
+    match: Host(`traefik.profanitybandits.net`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
     middlewares:
       - name: traefik-dashboard-basicauth
         namespace: network
