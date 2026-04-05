@@ -1,3 +1,4 @@
+# Optional extra env (e.g. metrics); default install uses chart Secret …-env only.
 apiVersion: v1
 kind: Secret
 metadata:
