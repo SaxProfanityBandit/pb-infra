@@ -1,0 +1,11 @@
+---
+description: Flux applies from Git only; CLI is for inspection, not driving reconcile
+alwaysApply: true
+---
+
+# Flux / GitOps workflow (pb-infra)
+
+- **Desired state** is whatever is **merged on the remote branch** Flux tracks (e.g. `main`). The cluster should converge via **controller intervals** and **git pushes**, not from ad-hoc local commands.
+- **Do not** use `flux reconcile`, `flux suspend`, or similar as part of normal change workflow when helping in this repo. Treat them as **debug / break-glass** only (and the human operator decides when that is appropriate).
+- **Do** use read-only or informational commands: `flux get …`, `kubectl get/describe/logs`, `helm get …`, events, etc., to verify state or troubleshoot.
+- After editing manifests, the expected path is **commit → push → wait for Flux** (or inform the user to push). Do not instruct “run `flux reconcile` to apply” as the default.
