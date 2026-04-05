@@ -43,9 +43,6 @@ spec:
         node-id: "0"
       server:
         hostname: mail.sax.lgbt
-      tracer:
-        stdout:
-          level: trace
 
     persistence:
       enabled: true
@@ -65,14 +62,3 @@ spec:
               - op: add
                 path: /spec/serviceName
                 value: stalwart-mailserver
-          - target:
-              group: apps
-              version: v1
-              kind: StatefulSet
-              name: stalwart-mailserver
-            patch: |
-              - op: add
-                path: /spec/template/spec/containers/0/envFrom/-
-                value:
-                  secretRef:
-                    name: stalwart-helm-env
