@@ -40,6 +40,10 @@ spec:
     nats:
       enabled: false
 
+    # Chart default backup init uses POD_INDEX (apps.kubernetes.io/pod-index), which ordinals provide; without ordinals the init loops forever. Disable until cluster is 1.27+ or chart fixes this.
+    backup:
+      enabled: false
+
     config:
       http:
         use-x-forwarded: true
