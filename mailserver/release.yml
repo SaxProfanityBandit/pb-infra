@@ -47,6 +47,9 @@ spec:
     config:
       http:
         use-x-forwarded: true
+      # Without StatefulSet ordinals, POD_INDEX is empty and chart default node-id breaks config (see pod logs). Single-node: use a fixed id.
+      cluster:
+        node-id: "0"
 
     persistence:
       enabled: true
