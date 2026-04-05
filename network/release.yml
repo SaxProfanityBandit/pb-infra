@@ -61,14 +61,15 @@ spec:
       websecure:
         tls:
           enabled: true
-      # Stalwart mail (see mailserver/ingress_tcp_stalwart.yml)
+      # Stalwart mail (mailserver/ingress_tcp_stalwart.yml). Use unprivileged container
+      # ports: Traefik runs as non-root and cannot bind to :993 / :587 (<1024).
       imap:
-        port: 993
+        port: 10993
         expose: true
         exposedPort: 993
         protocol: TCP
       submission:
-        port: 587
+        port: 10587
         expose: true
         exposedPort: 587
         protocol: TCP
