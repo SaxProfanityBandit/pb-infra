@@ -5,9 +5,6 @@ metadata:
   namespace: network
 spec:
   interval: 5m
-  # Avoid failed upgrades leaving a stuck Deployment; replaces resources when needed.
-  upgrade:
-    force: true
   chart:
     spec:
       chart: traefik
