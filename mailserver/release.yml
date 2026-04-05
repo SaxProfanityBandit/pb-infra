@@ -54,6 +54,13 @@ spec:
     persistence:
       enabled: true
       size: 10Gi
+
+    # TEMP (remove after login works): inline secrets override valuesFrom for debugging. Login: user "admin", password below.
+    secrets:
+      env:
+        FALLBACK_ADMIN_SECRET: "TempStalwart-Login-TEST-2026"
+        METRICS_USERNAME: "metrics"
+        METRICS_SECRET: "TempStalwart-Login-TEST-2026"
   # Post-render: chart omits serviceName; strips ordinals (1.27+). No namespace on patch target — Helm output omits metadata.namespace.
   postRenderers:
     - kustomize:
