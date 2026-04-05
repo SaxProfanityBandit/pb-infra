@@ -39,9 +39,6 @@ spec:
       enabled: false
 
     config:
-      http:
-        use-x-forwarded: true
-        url: "'https://' + config_get('server.hostname')"
       cluster:
         node-id: "0"
       server:
