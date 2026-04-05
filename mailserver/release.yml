@@ -43,6 +43,9 @@ spec:
         node-id: "0"
       server:
         hostname: mail.sax.lgbt
+      tracer:
+        stdout:
+          level: trace
 
     persistence:
       enabled: true
