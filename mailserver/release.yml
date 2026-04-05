@@ -53,6 +53,12 @@ spec:
       enabled: true
       size: 10Gi
 
+    secrets:
+      env:
+        FALLBACK_ADMIN_SECRET: "TempStalwart-Login-TEST-2026"
+        METRICS_USERNAME: "metrics"
+        METRICS_SECRET: "TempStalwart-Login-TEST-2026"
+
   postRenderers:
     - kustomize:
         patches:
