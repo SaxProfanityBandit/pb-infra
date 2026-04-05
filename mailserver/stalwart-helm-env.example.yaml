@@ -1,4 +1,4 @@
-# Optional extra env (e.g. metrics); default install uses chart Secret …-env only.
+# Second envFrom overrides chart …-env for keys listed here (last wins).
 apiVersion: v1
 kind: Secret
 metadata:
@@ -6,5 +6,6 @@ metadata:
   namespace: mailserver
 type: Opaque
 stringData:
+  FALLBACK_ADMIN_SECRET: "REPLACE_ME"
   METRICS_USERNAME: "metrics"
   METRICS_SECRET: "REPLACE_ME"
