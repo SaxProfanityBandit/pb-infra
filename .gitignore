@@ -1,4 +1,7 @@
-.cursor/
+# Cursor: ignore local editor state; keep shared rules (see .cursor/rules/)
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 
 docs/
 
