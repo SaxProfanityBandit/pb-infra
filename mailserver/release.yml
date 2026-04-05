@@ -47,7 +47,7 @@ spec:
     persistence:
       enabled: true
       size: 10Gi
-  # Post-render: stalwart-mail chart omits serviceName; chart uses spec.ordinals (1.27+). Remove ordinals + set serviceName for older clusters.
+  # Post-render: chart omits serviceName; strips ordinals (1.27+). No namespace on patch target — Helm output omits metadata.namespace.
   postRenderers:
     - kustomize:
         patches:
@@ -56,7 +56,6 @@ spec:
               version: v1
               kind: StatefulSet
               name: stalwart-mailserver
-              namespace: mailserver
             patch: |
               - op: remove
                 path: /spec/ordinals
