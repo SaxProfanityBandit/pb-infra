@@ -61,6 +61,17 @@ spec:
       websecure:
         tls:
           enabled: true
+      # Stalwart mail (see mailserver/ingress_tcp_stalwart.yml)
+      imap:
+        port: 993
+        expose: true
+        exposedPort: 993
+        protocol: TCP
+      submission:
+        port: 587
+        expose: true
+        exposedPort: 587
+        protocol: TCP
     ingressRoute:
       dashboard:
         enabled: false
