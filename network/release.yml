@@ -30,6 +30,11 @@ spec:
       - "--global.checknewversion=false"
     additionalArguments:
       - "--serversTransport.insecureSkipVerify=true"
+    logs:
+      general:
+        level: DEBUG
+      access:
+        enabled: true
     deployment:
       enabled: true
       replicas: 1
