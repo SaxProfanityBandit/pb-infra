@@ -47,6 +47,7 @@ spec:
     persistence:
       enabled: true
       size: 10Gi
+  # Post-render: stalwart-mail chart omits serviceName; chart uses spec.ordinals (1.27+). Remove ordinals + set serviceName for older clusters.
   postRenderers:
     - kustomize:
         patches:
@@ -57,6 +58,8 @@ spec:
               name: stalwart-mailserver
               namespace: mailserver
             patch: |
+              - op: remove
+                path: /spec/ordinals
               - op: add
                 path: /spec/serviceName
                 value: stalwart-mailserver
