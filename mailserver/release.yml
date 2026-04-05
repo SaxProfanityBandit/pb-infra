@@ -49,6 +49,10 @@ spec:
         node-id: "0"
       server:
         hostname: mail.sax.lgbt
+      authentication:
+        fallback-admin:
+          user: stalwart-fallback
+          secret: "%{env:FALLBACK_ADMIN_SECRET}%"
 
     persistence:
       enabled: true
