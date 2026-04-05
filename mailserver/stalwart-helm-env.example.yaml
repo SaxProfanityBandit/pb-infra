@@ -5,6 +5,5 @@ metadata:
   namespace: mailserver
 type: Opaque
 stringData:
-  FALLBACK_ADMIN_SECRET: "REPLACE_ME"
   METRICS_USERNAME: "metrics"
   METRICS_SECRET: "REPLACE_ME"
