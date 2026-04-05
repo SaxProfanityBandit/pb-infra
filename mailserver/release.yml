@@ -45,7 +45,7 @@ spec:
     config:
       http:
         use-x-forwarded: true
-        url: "https://mail.sax.lgbt"
+        url: "'https://' + config_get('server.hostname')"
       cluster:
         node-id: "0"
       server:
