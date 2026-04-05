@@ -1,4 +1,4 @@
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: stalwart-mailserver
@@ -47,3 +47,16 @@ spec:
     persistence:
       enabled: true
       size: 10Gi
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: apps
+              version: v1
+              kind: StatefulSet
+              name: stalwart-mailserver
+              namespace: mailserver
+            patch: |
+              - op: add
+                path: /spec/serviceName
+                value: stalwart-mailserver

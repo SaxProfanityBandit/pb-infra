@@ -2,9 +2,8 @@
 
 docs/
 
-mailserver/stalwart-mail-private-values.yaml
-mailserver/private-values.yml
 mailserver/*-private.yaml
+mailserver/rancher-secret.local.yaml
 
 network/secret-dashboard.yml
 foundryvtt/secret-foundryvtt.yml
