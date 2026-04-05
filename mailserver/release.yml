@@ -38,6 +38,10 @@ spec:
     backup:
       enabled: false
 
+    secrets:
+      env:
+        FALLBACK_ADMIN_SECRET: supersecret
+
     config:
       http:
         use-x-forwarded: true
