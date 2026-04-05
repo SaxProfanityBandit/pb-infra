@@ -17,6 +17,23 @@ spec:
   tls:
     passthrough: true
 ---
+# Inbound SMTP (port 25): required for MX delivery (e.g. Gmail replies).
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: stalwart-smtp
+  namespace: mailserver
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - smtp
+  routes:
+    - match: HostSNI(`*`)
+      services:
+        - name: stalwart-mailserver
+          port: smtp
+---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRouteTCP
 metadata:

@@ -66,6 +66,12 @@ spec:
         expose: true
         exposedPort: 587
         protocol: TCP
+      # Inbound MTA mail (other servers → you). Non-privileged bind inside pod.
+      smtp:
+        port: 10025
+        expose: true
+        exposedPort: 25
+        protocol: TCP
     ingressRoute:
       dashboard:
         enabled: false
