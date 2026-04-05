@@ -30,11 +30,6 @@ spec:
       - "--global.checknewversion=false"
     additionalArguments:
       - "--serversTransport.insecureSkipVerify=true"
-    logs:
-      general:
-        level: DEBUG
-      access:
-        enabled: true
     deployment:
       enabled: true
       replicas: 1
@@ -61,8 +56,6 @@ spec:
       websecure:
         tls:
           enabled: true
-      # Stalwart mail (mailserver/ingress_tcp_stalwart.yml). Use unprivileged container
-      # ports: Traefik runs as non-root and cannot bind to :993 / :587 (<1024).
       imap:
         port: 10993
         expose: true
