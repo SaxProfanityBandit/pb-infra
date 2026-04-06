@@ -9,5 +9,4 @@ data:
   continuwuity.toml: |
     [global]
     rocksdb_direct_io = false
-    rocksdb_optimize_for_spinning_disks = true
     rocksdb_parallelism_threads = 1
