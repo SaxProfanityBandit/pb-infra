@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: continuwuity
+  namespace: matrix
+  labels:
+    app.kubernetes.io/name: continuwuity
+spec:
+  replicas: 1
+  serviceName: continuwuity
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: continuwuity
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: continuwuity
+    spec:
+      containers:
+        - name: continuwuity
+          image: ghcr.io/continuwuity/continuwuity:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/sbin/conduwuit"]
+          args:
+            - --execute
+            - users create-user admin
+          ports:
+            - name: http
+              containerPort: 6167
+          env:
+            - name: TOKIO_WORKER_THREADS
+              value: "2"
+            - name: CONTINUWUITY_SERVER_NAME
+              value: chat.sax.lgbt
+            - name: CONTINUWUITY_DATABASE_PATH
+              value: /data/db
+            - name: CONTINUWUITY_DATABASE_BACKEND
+              value: rocksdb
+            - name: CONTINUWUITY_ADDRESS
+              value: "0.0.0.0"
+            - name: CONTINUWUITY_PORT
+              value: "6167"
+            - name: CONTINUWUITY_MAX_REQUEST_SIZE
+              value: "20000000"
+            - name: CONTINUWUITY_ALLOW_FEDERATION
+              value: "true"
+            - name: CONTINUWUITY_TRUSTED_SERVERS
+              value: '["matrix.org"]'
+            - name: CONTINUWUITY_ROCKSDB_PARALLELISM_THREADS
+              value: "1"
+            - name: CONTINUWUITY_WELL_KNOWN__CLIENT
+              value: https://chat.sax.lgbt
+            - name: CONTINUWUITY_WELL_KNOWN__SERVER
+              value: chat.sax.lgbt:443
+            - name: CONTINUWUITY_ALLOW_REGISTRATION
+              value: "false"
+            - name: RUST_LOG
+              value: info
+          volumeMounts:
+            - name: data
+              mountPath: /data
+              subPath: data
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          readinessProbe:
+            httpGet:
+              path: /_matrix/federation/v1/version
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 4
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /_matrix/federation/v1/version
+              port: http
+            initialDelaySeconds: 45
+            periodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: continuwuity-data
