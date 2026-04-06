@@ -76,7 +76,7 @@ spec:
                     - name: SFTP_PORT
                       value: "22"
                     - name: SFTP_BACKUP_CRON
-                      value: "5 17 * * *"
+                      value: "10 17 * * *"
                   resources:
                     requests:
                       cpu: 50m
