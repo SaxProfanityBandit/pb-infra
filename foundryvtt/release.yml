@@ -120,12 +120,19 @@ spec:
                       #!/bin/sh
                       set -e
                       STAMP=\$(date +%Y%m%dT%H%M)
-                      DST="${U}@${H}:./snapshot-\${STAMP}"
+                      SNAP="snapshot-\${STAMP}"
+                      DST="${U}@${H}:./\${SNAP}"
                       echo "sftp-backup: snapshot -> \$DST (one scp per top-level directory under /data)" >&2
                       find /data -mindepth 1 -maxdepth 1 2>/dev/null | LC_ALL=C sort > /tmp/sftp-backup-dirs.list
                       if ! [ -s /tmp/sftp-backup-dirs.list ]; then
                         echo "sftp-backup: warning: nothing under /data to copy" >&2
                         exit 0
+                      fi
+                      echo "sftp-backup: mkdir remote ./\${SNAP} (via sftp batch, not ssh shell)" >&2
+                      if [ "$P" = "22" ]; then
+                        printf '%s\n' "mkdir \${SNAP}" bye | sftp -b - -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null "${U}@${H}"
+                      else
+                        printf '%s\n' "mkdir \${SNAP}" bye | sftp -P "$P" -b - -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null "${U}@${H}"
                       fi
                       while IFS= read -r path; do
                         [ -n "\$path" ] || continue
