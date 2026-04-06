@@ -15,6 +15,9 @@ spec:
         name: bitnami
         namespace: sftpgo
   values:
+    global:
+      security:
+        allowInsecureImages: true
     image:
       registry: 130.236.253.202:5000
       repository: bitnami/postgresql
