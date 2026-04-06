@@ -23,20 +23,14 @@ spec:
           image: ghcr.io/continuwuity/continuwuity:latest
           imagePullPolicy: IfNotPresent
           command: ["/sbin/conduwuit"]
-          lifecycle:
-            preStop:
-              exec:
-                command: ["/bin/sh", "-c", "sleep 15"]
           ports:
             - name: http
               containerPort: 6167
           env:
-            - name: TOKIO_WORKER_THREADS
-              value: "2"
             - name: CONTINUWUITY_SERVER_NAME
               value: chat.sax.lgbt
             - name: CONTINUWUITY_DATABASE_PATH
-              value: /data/db
+              value: /srv/data/db
             - name: CONTINUWUITY_ADDRESS
               value: "0.0.0.0"
             - name: CONTINUWUITY_PORT
@@ -47,8 +41,6 @@ spec:
               value: "true"
             - name: CONTINUWUITY_TRUSTED_SERVERS
               value: '["matrix.org"]'
-            - name: CONTINUWUITY_ROCKSDB_PARALLELISM_THREADS
-              value: "1"
             - name: CONTINUWUITY_WELL_KNOWN__CLIENT
               value: https://chat.sax.lgbt
             - name: CONTINUWUITY_WELL_KNOWN__SERVER
@@ -59,8 +51,7 @@ spec:
               value: info
           volumeMounts:
             - name: data
-              mountPath: /data
-              subPath: data
+              mountPath: /srv
           resources:
             requests:
               cpu: 500m
@@ -68,6 +59,12 @@ spec:
             limits:
               cpu: "2"
               memory: 2Gi
+          startupProbe:
+            httpGet:
+              path: /_matrix/federation/v1/version
+              port: http
+            failureThreshold: 60
+            periodSeconds: 5
           readinessProbe:
             httpGet:
               path: /_matrix/federation/v1/version
@@ -79,7 +76,7 @@ spec:
             httpGet:
               path: /_matrix/federation/v1/version
               port: http
-            initialDelaySeconds: 120
+            initialDelaySeconds: 10
             periodSeconds: 30
       volumes:
         - name: data
