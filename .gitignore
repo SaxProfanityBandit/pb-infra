@@ -13,4 +13,7 @@ foundryvtt/secret-foundryvtt.yml
 foundryvtt/secret-foundryvtt-account.yml
 foundryvtt/secret-foundryvtt-admin.yml
 foundryvtt/secret-foundryvtt-s3.yml
+# Local SFTP backup key material (never commit)
+foundry-sftp-backup
+foundry-sftp-backup.pub
 sftpgo/secret-db.yaml
