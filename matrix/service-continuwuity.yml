@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: continuwuity
+  namespace: matrix
+  labels:
+    app.kubernetes.io/name: continuwuity
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: continuwuity
+  ports:
+    - name: http
+      port: 6167
+      targetPort: http

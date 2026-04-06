@@ -6,3 +6,4 @@ resources:
   - foundryvtt
   - mailserver
   - sftpgo
+  - matrix
