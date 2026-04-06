@@ -53,10 +53,6 @@ spec:
               value: chat.sax.lgbt:443
             - name: CONTINUWUITY_ALLOW_REGISTRATION
               value: "false"
-            - name: CONTINUWUITY_ADMIN_EXECUTE
-              value: '["users create-user admin", "users make-user-admin admin"]'
-            - name: CONTINUWUITY_ADMIN_EXECUTE_ERRORS_IGNORE
-              value: "true"
             - name: RUST_LOG
               value: info
           volumeMounts:
