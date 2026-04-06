@@ -81,13 +81,13 @@ spec:
                     - name: SFTP_PORT
                       value: "22"
                     - name: SFTP_BACKUP_CRON
-                      value: "30 17 * * *"
+                      value: "0 3 * * *"
                   resources:
                     requests:
-                      cpu: 50m
-                      memory: 64Mi
+                      cpu: 500m
+                      memory: 128Mi
                     limits:
-                      memory: 512Mi
+                      memory: 1Gi
                   readinessProbe:
                     exec:
                       command:
@@ -121,13 +121,24 @@ spec:
                       set -e
                       STAMP=\$(date +%Y%m%dT%H%M)
                       DST="${U}@${H}:./snapshot-\${STAMP}"
-                      echo "sftp-backup: uploading /data -> \$DST" >&2
-                      if [ "$P" = "22" ]; then
-                        exec scp -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -r /data "\$DST"
-                      else
-                        exec scp -P "$P" -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -r /data "\$DST"
+                      echo "sftp-backup: snapshot -> \$DST (one scp per top-level directory under /data)" >&2
+                      find /data -mindepth 1 -maxdepth 1 2>/dev/null | LC_ALL=C sort > /tmp/sftp-backup-dirs.list
+                      if ! [ -s /tmp/sftp-backup-dirs.list ]; then
+                        echo "sftp-backup: warning: nothing under /data to copy" >&2
+                        exit 0
                       fi
+                      while IFS= read -r path; do
+                        [ -n "\$path" ] || continue
+                        name="\${path##*/}"
+                        echo "sftp-backup: copying top-level -> \$name" >&2
+                        if [ "$P" = "22" ]; then
+                          scp -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -r "\$path" "\${DST}/\$name"
+                        else
+                          scp -P "$P" -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -r "\$path" "\${DST}/\$name"
+                        fi
+                      done < /tmp/sftp-backup-dirs.list
+                      echo "sftp-backup: finished OK -> \$DST" >&2
                       EOF
                       chmod 0755 /usr/local/bin/sftp-backup.sh
-                      printf '%s /usr/local/bin/sftp-backup.sh\n' "$CR" > /etc/crontabs/root
+                      printf '%s /bin/sh -c "/usr/local/bin/sftp-backup.sh >> /tmp/sftp-backup-cron.log 2>&1"\n' "$CR" > /etc/crontabs/root
                       exec crond -f
