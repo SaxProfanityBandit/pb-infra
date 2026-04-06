@@ -3,6 +3,8 @@ kind: HelmRelease
 metadata:
   name: sftpgo
   namespace: sftpgo
+  annotations:
+    pb-infra/reconcile-after-quota: "2026-04-06"
 spec:
   interval: 10m
   timeout: 15m
