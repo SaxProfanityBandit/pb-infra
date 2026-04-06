@@ -1,0 +1,21 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sftpgo
+  namespace: sftpgo
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`files.sax.lgbt`)
+      services:
+        - name: sftpgo
+          kind: Service
+          port: http
+  tls:
+    certResolver: cert-resolver
+    domains:
+      - main: files.sax.lgbt

@@ -5,3 +5,4 @@ resources:
   - network
   - foundryvtt
   - mailserver
+  - sftpgo

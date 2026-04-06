@@ -1,0 +1,15 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: sftpgo-sftp
+  namespace: sftpgo
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - sftpgo
+  routes:
+    - match: HostSNI(`*`)
+      services:
+        - name: sftpgo
+          port: sftp
