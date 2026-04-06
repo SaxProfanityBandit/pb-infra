@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yml
   - pvc-continuwuity.yml
+  - configmap-continuwuity.toml.yaml
   - service-continuwuity.yml
   - statefulset-continuwuity.yml
   - ingress-chat-sax.yml
