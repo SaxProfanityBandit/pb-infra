@@ -60,10 +60,6 @@ spec:
               value: '["users create-user admin", "users make-user-admin admin"]'
             - name: CONTINUWUITY_ADMIN_EXECUTE_ERRORS_IGNORE
               value: "true"
-            - name: CONTINUWUITY_ADMIN_EXECUTE
-              value: '["users create-user admin","users make-user-admin admin"]'
-            - name: CONTINUWUITY_ADMIN_EXECUTE_ERRORS_IGNORE
-              value: "true"
           volumeMounts:
             - name: config
               mountPath: /etc/continuwuity
