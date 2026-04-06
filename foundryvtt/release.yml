@@ -46,7 +46,6 @@ spec:
               version: v1
               kind: Deployment
               name: foundryvtt-foundry-vtt
-              namespace: foundryvtt
             patch: |
               - op: add
                 path: /spec/template/spec/hostAliases
