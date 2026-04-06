@@ -22,9 +22,6 @@ spec:
           image: ghcr.io/continuwuity/continuwuity:latest
           imagePullPolicy: IfNotPresent
           command: ["/sbin/conduwuit"]
-          args:
-            - --execute
-            - users create-user admin
           ports:
             - name: http
               containerPort: 6167
@@ -35,8 +32,6 @@ spec:
               value: chat.sax.lgbt
             - name: CONTINUWUITY_DATABASE_PATH
               value: /data/db
-            - name: CONTINUWUITY_DATABASE_BACKEND
-              value: rocksdb
             - name: CONTINUWUITY_ADDRESS
               value: "0.0.0.0"
             - name: CONTINUWUITY_PORT
