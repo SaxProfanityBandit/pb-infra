@@ -8,6 +8,9 @@ metadata:
 spec:
   interval: 10m
   timeout: 15m
+  install:
+    remediation:
+      retries: 5
   dependsOn:
     - name: pg
       namespace: sftpgo
@@ -50,7 +53,11 @@ spec:
         host: pg-postgresql.sftpgo.svc.cluster.local
         port: 5432
         username: sftpgo
+        # Relative user home dirs are rooted here (PVC: /var/lib/sftpgo).
+        users_base_dir: /var/lib/sftpgo/users
     envVars:
+      - name: SFTPGO_HTTPD__BINDINGS__0__BASE_URL
+        value: https://files.sax.lgbt
       - name: SFTPGO_DATA_PROVIDER__PASSWORD
         valueFrom:
           secretKeyRef:
