@@ -27,16 +27,12 @@ spec:
             - name: http
               containerPort: 6167
           env:
+            - name: CONTINUWUITY_CONFIG
+              value: /etc/continuwuity/continuwuity.toml
             - name: CONTINUWUITY_SERVER_NAME
               value: chat.sax.lgbt
             - name: CONTINUWUITY_DATABASE_PATH
               value: /srv/data/db
-            - name: CONTINUWUITY_ROCKSDB_PARALLELISM_THREADS
-              value: "1"
-            - name: CONTINUWUITY_ROCKSDB_OPTIMIZE_FOR_SPINNING_DISKS
-              value: "true"
-            - name: CONTINUWUITY_ROCKSDB_DIRECT_IO
-              value: "false"
             - name: CONTINUWUITY_ADDRESS
               value: "0.0.0.0"
             - name: CONTINUWUITY_PORT
@@ -52,10 +48,18 @@ spec:
             - name: CONTINUWUITY_WELL_KNOWN__SERVER
               value: chat.sax.lgbt:443
             - name: CONTINUWUITY_ALLOW_REGISTRATION
-              value: "false"
+              value: "true"
+            - name: CONTINUWUITY_REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: continuwuity-registration
+                  key: token
             - name: RUST_LOG
               value: info
           volumeMounts:
+            - name: config
+              mountPath: /etc/continuwuity
+              readOnly: true
             - name: data
               mountPath: /srv
           resources:
@@ -85,6 +89,9 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 30
       volumes:
+        - name: config
+          configMap:
+            name: continuwuity-config
         - name: data
           persistentVolumeClaim:
             claimName: continuwuity-data

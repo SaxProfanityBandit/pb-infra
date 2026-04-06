@@ -17,3 +17,4 @@ foundryvtt/secret-foundryvtt-s3.yml
 foundry-sftp-backup
 foundry-sftp-backup.pub
 sftpgo/secret-db.yaml
+matrix/secret-continuwuity-registration.yaml
