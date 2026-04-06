@@ -8,7 +8,7 @@ metadata:
 spec:
   replicas: 1
   serviceName: continuwuity
-  podManagementPolicy: Parallel
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
       app.kubernetes.io/name: continuwuity
@@ -17,11 +17,16 @@ spec:
       labels:
         app.kubernetes.io/name: continuwuity
     spec:
+      terminationGracePeriodSeconds: 90
       containers:
         - name: continuwuity
           image: ghcr.io/continuwuity/continuwuity:latest
           imagePullPolicy: IfNotPresent
           command: ["/sbin/conduwuit"]
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 15"]
           ports:
             - name: http
               containerPort: 6167
@@ -74,7 +79,7 @@ spec:
             httpGet:
               path: /_matrix/federation/v1/version
               port: http
-            initialDelaySeconds: 45
+            initialDelaySeconds: 120
             periodSeconds: 30
       volumes:
         - name: data
