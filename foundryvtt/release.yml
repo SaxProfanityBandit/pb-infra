@@ -54,3 +54,80 @@ spec:
                     hostnames:
                       - rgw.ctrl-c.liu.se
                       - foundryvtt-data.rgw.ctrl-c.liu.se
+              - op: add
+                path: /spec/template/spec/volumes/-
+                value:
+                  name: foundry-sftp-backup-key
+                  secret:
+                    secretName: foundry-sftp-backup-key
+                    defaultMode: 256
+              - op: add
+                path: /spec/template/spec/containers/-
+                value:
+                  name: sftp-backup
+                  image: docker.io/alpine/git:v2.47.2
+                  securityContext:
+                    runAsUser: 0
+                    runAsGroup: 0
+                    allowPrivilegeEscalation: false
+                    readOnlyRootFilesystem: false
+                  env:
+                    - name: TZ
+                      value: Europe/Stockholm
+                    - name: SFTP_HOST
+                      value: files.sax.lgbt
+                    - name: SFTP_USER
+                      value: foundry-backup
+                    - name: SFTP_PORT
+                      value: "22"
+                    - name: SFTP_BACKUP_CRON
+                      value: "30 17 * * *"
+                  resources:
+                    requests:
+                      cpu: 50m
+                      memory: 64Mi
+                    limits:
+                      memory: 512Mi
+                  readinessProbe:
+                    exec:
+                      command:
+                        - /bin/sh
+                        - -c
+                        - pidof crond >/dev/null 2>&1 || exit 1
+                    initialDelaySeconds: 5
+                    periodSeconds: 15
+                    timeoutSeconds: 3
+                  volumeMounts:
+                    - name: data
+                      mountPath: /data
+                      readOnly: true
+                    - name: foundry-sftp-backup-key
+                      mountPath: /run/sftp-backup/id_ed25519
+                      subPath: ssh-privatekey
+                      readOnly: true
+                  command: ["/bin/sh", "-c"]
+                  args:
+                    - |
+                      set -e
+                      mkdir -p /tmp/sftp-backup
+                      cp /run/sftp-backup/id_ed25519 /tmp/sftp-backup/id_ed25519
+                      chmod 600 /tmp/sftp-backup/id_ed25519
+                      U="$SFTP_USER"
+                      H="$SFTP_HOST"
+                      P="${SFTP_PORT:-22}"
+                      CR="${SFTP_BACKUP_CRON:-0 3 * * *}"
+                      cat <<EOF > /usr/local/bin/sftp-backup.sh
+                      #!/bin/sh
+                      set -e
+                      STAMP=\$(date +%Y%m%dT%H%M)
+                      DST="${U}@${H}:./snapshot-\${STAMP}"
+                      echo "sftp-backup: uploading /data -> \$DST" >&2
+                      if [ "$P" = "22" ]; then
+                        exec scp -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -r /data "\$DST"
+                      else
+                        exec scp -P "$P" -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -r /data "\$DST"
+                      fi
+                      EOF
+                      chmod 0755 /usr/local/bin/sftp-backup.sh
+                      printf '%s /usr/local/bin/sftp-backup.sh\n' "$CR" > /etc/crontabs/root
+                      exec crond -f
