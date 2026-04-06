@@ -65,7 +65,7 @@ spec:
                 path: /spec/template/spec/containers/-
                 value:
                   name: sftp-backup
-                  image: docker.io/alpine/git:v2.47.2
+                  image: docker.io/rclone/rclone:1.68.2
                   securityContext:
                     runAsUser: 0
                     runAsGroup: 0
@@ -82,6 +82,12 @@ spec:
                       value: "22"
                     - name: SFTP_BACKUP_CRON
                       value: "0 3 * * *"
+                    - name: SFTP_BACKUP_RCLONE_VERBOSE
+                      value: "1"
+                    - name: SFTP_BACKUP_RETENTION_DAYS
+                      value: "30"
+                    - name: SFTP_BACKUP_MAX_SNAPSHOTS
+                      value: "0"
                   resources:
                     requests:
                       cpu: 500m
@@ -116,35 +122,62 @@ spec:
                       H="$SFTP_HOST"
                       P="${SFTP_PORT:-22}"
                       CR="${SFTP_BACKUP_CRON:-0 3 * * *}"
+                      RD="${SFTP_BACKUP_RETENTION_DAYS:-30}"
+                      MX="${SFTP_BACKUP_MAX_SNAPSHOTS:-0}"
+                      case "${SFTP_BACKUP_RCLONE_VERBOSE:-1}" in
+                        0|false|no|quiet) RCLONE_LOG_FLAGS="-q" ;;
+                        2|vv|debug) RCLONE_LOG_FLAGS="-vv" ;;
+                        *) RCLONE_LOG_FLAGS="-v" ;;
+                      esac
+                      printf '%s\n' '[dest]' 'type = sftp' "host = ${H}" "user = ${U}" "port = ${P}" 'key_file = /tmp/sftp-backup/id_ed25519' 'shell_type = none' 'disable_hashcheck = true' > /tmp/rclone.conf
                       cat <<EOF > /usr/local/bin/sftp-backup.sh
                       #!/bin/sh
                       set -e
+                      RETENTION_DAYS=${RD}
+                      MAX_SNAPSHOTS=${MX}
                       STAMP=\$(date +%Y%m%dT%H%M)
                       SNAP="snapshot-\${STAMP}"
-                      DST="${U}@${H}:./\${SNAP}"
-                      echo "sftp-backup: snapshot -> \$DST (one scp per top-level directory under /data)" >&2
-                      find /data -mindepth 1 -maxdepth 1 2>/dev/null | LC_ALL=C sort > /tmp/sftp-backup-dirs.list
-                      if ! [ -s /tmp/sftp-backup-dirs.list ]; then
+                      echo "sftp-backup: rclone copy /data -> dest:\${SNAP}/ (one log line per file at -v)" >&2
+                      if [ -z "\$(find /data -mindepth 1 -maxdepth 1 2>/dev/null | head -1)" ]; then
                         echo "sftp-backup: warning: nothing under /data to copy" >&2
                         exit 0
                       fi
-                      echo "sftp-backup: mkdir remote ./\${SNAP} (via sftp batch, not ssh shell)" >&2
-                      if [ "$P" = "22" ]; then
-                        printf '%s\n' "mkdir \${SNAP}" bye | sftp -b - -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null "${U}@${H}"
-                      else
-                        printf '%s\n' "mkdir \${SNAP}" bye | sftp -P "$P" -b - -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null "${U}@${H}"
+                      echo "sftp-backup: pre-sync disk usage of /data (approx. tree size on disk before upload):" >&2
+                      du -sh /data >&2 || true
+                      SK=\$(du -sk /data 2>/dev/null | awk '{print \$1}')
+                      [ -n "\$SK" ] && echo "sftp-backup: pre-sync-total-kib \$SK (KiB per du -sk; not wire bytes)" >&2
+                      set +e
+                      rclone copy /data "dest:\${SNAP}" --config /tmp/rclone.conf --create-empty-src-dirs --transfers 1 --checkers 2 --stats-one-line --stats 30s ${RCLONE_LOG_FLAGS}
+                      COPY_EC=\$?
+                      set -e
+                      [ "\$COPY_EC" -eq 0 ] || echo "sftp-backup: WARNING rclone copy exited \$COPY_EC" >&2
+                      if [ "\${RETENTION_DAYS:-0}" -gt 0 ] 2>/dev/null; then
+                        echo "sftp-backup: retention by age: drop snapshot-* dirs with date before today minus \${RETENTION_DAYS} days" >&2
+                        cutoff_s=\$(($(date -u +%s) - RETENTION_DAYS * 86400))
+                        CUTOFF_YMD=\$(date -u +%Y%m%d -d @\$cutoff_s)
+                        rclone lsf dest: --config /tmp/rclone.conf --dirs-only 2>/dev/null | grep '^snapshot-' | while IFS= read -r d; do
+                          d=\${d%/}
+                          case "\$d" in
+                            snapshot-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]T*) ;;
+                            *) continue ;;
+                          esac
+                          ymd=\$(printf '%s' "\$d" | cut -c10-17)
+                          if [ "\$ymd" -lt "\$CUTOFF_YMD" ]; then
+                            echo "sftp-backup: retention purge (age) dest:\$d (day \$ymd < cutoff \$CUTOFF_YMD)" >&2
+                            rclone purge "dest:\$d" --config /tmp/rclone.conf ${RCLONE_LOG_FLAGS} || true
+                          fi
+                        done
                       fi
-                      while IFS= read -r path; do
-                        [ -n "\$path" ] || continue
-                        name="\${path##*/}"
-                        echo "sftp-backup: copying top-level -> \$name" >&2
-                        if [ "$P" = "22" ]; then
-                          scp -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -r "\$path" "\${DST}/\$name"
-                        else
-                          scp -P "$P" -i /tmp/sftp-backup/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -r "\$path" "\${DST}/\$name"
-                        fi
-                      done < /tmp/sftp-backup-dirs.list
-                      echo "sftp-backup: finished OK -> \$DST" >&2
+                      if [ "\${MAX_SNAPSHOTS:-0}" -gt 0 ] 2>/dev/null; then
+                        echo "sftp-backup: retention by count: keep newest \${MAX_SNAPSHOTS} snapshot-* dirs only" >&2
+                        rclone lsf dest: --config /tmp/rclone.conf --dirs-only 2>/dev/null | grep '^snapshot-' | sed 's|/||g' | LC_ALL=C sort -r | tail -n +\$((MAX_SNAPSHOTS + 1)) | while IFS= read -r d; do
+                          [ -z "\$d" ] && continue
+                          echo "sftp-backup: retention purge (count) dest:\$d" >&2
+                          rclone purge "dest:\$d" --config /tmp/rclone.conf ${RCLONE_LOG_FLAGS} || true
+                        done
+                      fi
+                      [ "\$COPY_EC" -eq 0 ] || exit "\$COPY_EC"
+                      echo "sftp-backup: finished OK -> dest:\${SNAP}/" >&2
                       EOF
                       chmod 0755 /usr/local/bin/sftp-backup.sh
                       printf '%s /bin/sh -c "/usr/local/bin/sftp-backup.sh >> /tmp/sftp-backup-cron.log 2>&1"\n' "$CR" > /etc/crontabs/root
