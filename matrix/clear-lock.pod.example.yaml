@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: continuwuity-clear-lock
+  namespace: matrix
+spec:
+  containers:
+    - name: shell
+      image: docker.io/library/busybox:1.36
+      command:
+        - sh
+        - -c
+        - ls -la /srv/data/db; rm -f /srv/data/db/LOCK; ls -la /srv/data/db
+      volumeMounts:
+        - name: data
+          mountPath: /srv
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: continuwuity-data
+  restartPolicy: Never
