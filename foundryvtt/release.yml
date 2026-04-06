@@ -85,9 +85,9 @@ spec:
                     - name: SFTP_BACKUP_RCLONE_VERBOSE
                       value: "1"
                     - name: SFTP_BACKUP_RETENTION_DAYS
-                      value: "30"
-                    - name: SFTP_BACKUP_MAX_SNAPSHOTS
                       value: "0"
+                    - name: SFTP_BACKUP_MAX_SNAPSHOTS
+                      value: "7"
                   resources:
                     requests:
                       cpu: 500m
@@ -122,8 +122,8 @@ spec:
                       H="$SFTP_HOST"
                       P="${SFTP_PORT:-22}"
                       CR="${SFTP_BACKUP_CRON:-0 3 * * *}"
-                      RD="${SFTP_BACKUP_RETENTION_DAYS:-30}"
-                      MX="${SFTP_BACKUP_MAX_SNAPSHOTS:-0}"
+                      RD="${SFTP_BACKUP_RETENTION_DAYS:-0}"
+                      MX="${SFTP_BACKUP_MAX_SNAPSHOTS:-7}"
                       case "${SFTP_BACKUP_RCLONE_VERBOSE:-1}" in
                         0|false|no|quiet) RCLONE_LOG_FLAGS="-q" ;;
                         2|vv|debug) RCLONE_LOG_FLAGS="-vv" ;;
