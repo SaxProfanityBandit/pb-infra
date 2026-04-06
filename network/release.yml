@@ -72,6 +72,11 @@ spec:
         expose: true
         exposedPort: 25
         protocol: TCP
+      sftpgo:
+        port: 12022
+        expose: true
+        exposedPort: 22
+        protocol: TCP
     ingressRoute:
       dashboard:
         enabled: false

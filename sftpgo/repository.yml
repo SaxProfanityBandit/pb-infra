@@ -1,0 +1,20 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: sftpgo-charts
+  namespace: sftpgo
+spec:
+  interval: 24h
+  type: oci
+  url: oci://ghcr.io/sftpgo/helm-charts
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bitnami
+  namespace: sftpgo
+spec:
+  interval: 24h
+  type: oci
+  url: oci://registry-1.docker.io/bitnamicharts

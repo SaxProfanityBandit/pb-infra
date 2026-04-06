@@ -13,3 +13,4 @@ foundryvtt/secret-foundryvtt.yml
 foundryvtt/secret-foundryvtt-account.yml
 foundryvtt/secret-foundryvtt-admin.yml
 foundryvtt/secret-foundryvtt-s3.yml
+sftpgo/secret-db.yaml
