@@ -15,9 +15,11 @@ set -euo pipefail
 # Requires: kubectl, keepassxc-cli
 # Defaults match sax’s KeePass layout; override with env if needed.
 # Env (optional):
+#   KUBECTL=kubectl
 #   NAMESPACE=matrix  POD_NAME=continuwuity-0  SECRET_NAME=continuwuity-admin
 #   LOG_TAIL=8000   KEEPASS_DB  KEEPASS_ENTRY  ADMIN_LOCALPART  SERVER_NAME
 
+KUBECTL="${KUBECTL:-kubectl}"
 NAMESPACE="${NAMESPACE:-matrix}"
 POD_NAME="${POD_NAME:-continuwuity-0}"
 SECRET_NAME="${SECRET_NAME:-continuwuity-admin}"
@@ -26,7 +28,7 @@ SERVER_NAME="${SERVER_NAME:-chat.sax.lgbt}"
 KEEPASS_DB="${KEEPASS_DB:-/mnt/storage/KeePassXC/Passwords.kdbx}"
 KEEPASS_ENTRY="${KEEPASS_ENTRY:-Root/Infra/Continuwuity/Users/@admin:chat.sax.lgbt}"
 
-if ! command -v kubectl >/dev/null; then
+if [[ "${KUBECTL}" == "kubectl" ]] && ! command -v kubectl >/dev/null; then
   echo "kubectl not found" >&2
   exit 1
 fi
@@ -39,9 +41,9 @@ LOG_TAIL="${LOG_TAIL:-8000}"
 USER_ID="@${ADMIN_LOCALPART}:${SERVER_NAME}"
 
 set +e
-LOGS_CUR="$(kubectl -n "${NAMESPACE}" logs "${POD_NAME}" --tail="${LOG_TAIL}" 2>&1)"
+LOGS_CUR="$("${KUBECTL}" -n "${NAMESPACE}" logs "${POD_NAME}" --tail="${LOG_TAIL}" 2>&1)"
 _kubectl_ec=$?
-LOGS_PREV="$(kubectl -n "${NAMESPACE}" logs "${POD_NAME}" --previous --tail="${LOG_TAIL}" 2>&1)"
+LOGS_PREV="$("${KUBECTL}" -n "${NAMESPACE}" logs "${POD_NAME}" --previous --tail="${LOG_TAIL}" 2>&1)"
 _prev_ec=$?
 set -e
 if (( _kubectl_ec != 0 )); then
@@ -72,7 +74,7 @@ esac
 if [[ -z "${MATRIX_PASS}" ]]; then
   echo "could not find create-user password for ${USER_ID} in pod logs." >&2
   echo "Use grep 'Created user' (not just Created — that also matches RocksDB migrations)." >&2
-  echo "Try: kubectl -n ${NAMESPACE} logs ${POD_NAME} --tail=${LOG_TAIL} | grep -F 'Created user'" >&2
+  echo "Try: ${KUBECTL} -n ${NAMESPACE} logs ${POD_NAME} --tail=${LOG_TAIL} | grep -F 'Created user'" >&2
   echo "If the container has restarted, also: ... logs ${POD_NAME} --previous ... (omit if API says no previous container)." >&2
   echo "If still empty: bootstrap never succeeded, or admin already existed (no new password logged)." >&2
   exit 1
@@ -99,10 +101,10 @@ trap cleanup EXIT
 printf '%s' "${MATRIX_PASS}" >"${TMP}"
 unset MATRIX_PASS
 
-if ! kubectl create secret generic "${SECRET_NAME}" \
+if ! "${KUBECTL}" create secret generic "${SECRET_NAME}" \
   -n "${NAMESPACE}" \
   --from-file=password="${TMP}" \
-  --dry-run=client -o yaml | kubectl apply -f -; then
+  --dry-run=client -o yaml | "${KUBECTL}" apply -f -; then
   echo "kubectl apply for Secret/${SECRET_NAME} failed." >&2
   exit 1
 fi
