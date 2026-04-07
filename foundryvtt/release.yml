@@ -28,7 +28,7 @@ spec:
       s3:
         enabled: true
         existingSecret: foundryvtt-s3
-      version: '14.359'
+      version: '13.351'
     service:
       tls: false
     persistence:
