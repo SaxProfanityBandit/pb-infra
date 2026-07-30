@@ -10,10 +10,12 @@ spec:
   - websecure
   routes:
   - kind: Rule
-    match: Host(`foundry.profanitybandits.net`)
+    match: Host(`foundry.sax.lgbt`)
     services:
       - name: foundryvtt-foundry-vtt
         kind: Service
         port: http
   tls:
     certResolver: cert-resolver
+    domains:
+      - main: foundry.sax.lgbt
