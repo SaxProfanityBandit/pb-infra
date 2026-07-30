@@ -22,13 +22,13 @@ spec:
       existingSecret: foundryvtt-secrets
       existingUserSecret: foundryvtt-secrets
       release_url: blahaj.lgbt
-      hostname: "foundry.profanitybandits.net"
+      hostname: "foundry.sax.lgbt"
       proxyPort: "443"
       proxySSL: true
       s3:
         enabled: true
         existingSecret: foundryvtt-s3
-      version: '13.351'
+      version: '14.365'
     service:
       tls: false
     persistence:

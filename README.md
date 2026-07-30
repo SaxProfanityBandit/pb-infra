@@ -1,6 +1,6 @@
 # pb-infra
 
-ProfanityBandits infrastructure for profanitybandits.net and related services.
+GitOps infrastructure for **sax.lgbt** services (Matrix, Foundry, SFTPGo, mail, Traefik) on Kubernetes.
 
 ## Technologies
 
