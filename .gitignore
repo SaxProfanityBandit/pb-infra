@@ -1,7 +1,5 @@
-# Cursor: ignore entire .cursor (rules, skills, local state)
-.cursor/
-
-docs/
+# Gitignored paths (secrets, local-only)
+# Documentation and Cursor skills → home-stack repo
 
 mailserver/*-private.yaml
 mailserver/rancher-secret.local.yaml
