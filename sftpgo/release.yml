@@ -9,6 +9,9 @@ spec:
   install:
     remediation:
       retries: 5
+  upgrade:
+    remediation:
+      retries: 3
   dependsOn:
     - name: pg
       namespace: sftpgo
@@ -42,7 +45,7 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 50Gi
+            storage: 100Gi
         storageClassName: 'rook-ceph'
     config:
       data_provider:
