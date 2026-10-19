@@ -15,3 +15,4 @@ foundry-sftp-backup.pub
 sftpgo/secret-db.yaml
 matrix/secret-continuwuity-registration.yaml
 matrix/secret-continuwuity-admin.yaml
+vpn/wireguard-secret.local.yaml

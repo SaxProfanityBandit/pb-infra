@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wireguard-dnsmasq
+  namespace: vpn
+data:
+  dnsmasq.conf: |
+    interface=wg0
+    bind-interfaces
+    listen-address=10.200.0.1
+    no-dhcp-interface=wg0
+    address=/files.sax.lgbt/10.255.180.246
+    address=/.sax.lgbt/10.255.254.148
