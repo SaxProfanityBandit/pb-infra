@@ -1,0 +1,66 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: synapse
+  namespace: matrix
+spec:
+  interval: 5m
+  timeout: 20m
+  dependsOn:
+    - name: pg
+      namespace: matrix
+  chart:
+    spec:
+      chart: matrix-synapse
+      version: "3.12.41"
+      sourceRef:
+        kind: HelmRepository
+        name: ananace
+        namespace: matrix
+  values:
+    serverName: chat.sax.lgbt
+    publicServerName: chat.sax.lgbt
+    config:
+      publicBaseurl: https://chat.sax.lgbt/
+      reportStats: false
+      enableRegistration: false
+      trustedKeyServers:
+        - server_name: matrix.org
+    signingkey:
+      job:
+        enabled: true
+    postgresql:
+      enabled: false
+    externalPostgresql:
+      host: pg-postgresql.matrix.svc.cluster.local
+      port: 5432
+      username: synapse
+      database: synapse
+      existingSecret: synapse-db
+      existingSecretPasswordKey: password
+    redis:
+      enabled: false
+    persistence:
+      enabled: true
+      accessMode: ReadWriteOnce
+      size: 10Gi
+      storageClass: rook-ceph
+    ingress:
+      enabled: false
+    wellknown:
+      enabled: true
+      client:
+        m.homeserver:
+          base_url: https://chat.sax.lgbt
+      server:
+        m.server: chat.sax.lgbt:443
+    synapse:
+      strategy:
+        type: Recreate
+      resources:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+        limits:
+          cpu: "2"
+          memory: 2Gi

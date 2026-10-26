@@ -1,7 +1,7 @@
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: continuwuity-chat
+  name: synapse-chat
   namespace: matrix
   annotations:
     kubernetes.io/ingress.class: traefik-external
@@ -10,9 +10,16 @@ spec:
     - websecure
   routes:
     - kind: Rule
+      match: Host(`chat.sax.lgbt`) && PathPrefix(`/.well-known/`)
+      priority: 100
+      services:
+        - name: synapse-wellknown-lighttpd
+          kind: Service
+          port: 80
+    - kind: Rule
       match: Host(`chat.sax.lgbt`)
       services:
-        - name: continuwuity
+        - name: synapse-matrix-synapse
           kind: Service
           port: http
   tls:

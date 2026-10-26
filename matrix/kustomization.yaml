@@ -2,8 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yml
-  - pvc-continuwuity.yml
-  - configmap-continuwuity.toml.yaml
-  - service-continuwuity.yml
-  - statefulset-continuwuity.yml
+  - repository.yml
+  - postgresql-release.yml
+  - release.yml
   - ingress-chat-sax.yml
