@@ -1,5 +1,1 @@
-# pb-infra
-
-GitOps infrastructure for **sax.lgbt** services (Matrix, Foundry, SFTPGo, mail, Traefik) on Kubernetes.
-
-
+self-host stack in virtual kubernetes cluster using fluxcd and helm charts.

@@ -43,10 +43,19 @@ spec:
         node-id: "0"
       server:
         hostname: mail.sax.lgbt
+        allowed-ip:
+          "10.42.0.0/16": ""
+          "10.254.0.0/16": ""
 
     persistence:
       enabled: true
       size: 10Gi
+
+    resources:
+      limits:
+        ephemeral-storage: 2Gi
+      requests:
+        ephemeral-storage: 512Mi
 
   postRenderers:
     - kustomize:
