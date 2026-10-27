@@ -39,7 +39,7 @@ spec:
       existingSecret: synapse-db
       existingSecretPasswordKey: password
     redis:
-      enabled: false
+      enabled: true
     persistence:
       enabled: true
       accessMode: ReadWriteOnce
