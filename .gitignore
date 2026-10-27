@@ -14,4 +14,5 @@ foundry-sftp-backup
 foundry-sftp-backup.pub
 sftpgo/secret-db.yaml
 matrix/secret-db.yaml
+rickardsahlgren/secret-link-signing.yaml
 vpn/wireguard-secret.local.yaml

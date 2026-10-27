@@ -13,16 +13,54 @@ spec:
       labels:
         app: rickardsahlgren-site
     spec:
+      initContainers:
+        - name: build-gateway
+          image: docker.io/library/golang:1.23-alpine
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              mkdir -p /tmp/build
+              cp /src/main.go /tmp/build/
+              printf 'module resume-gateway\ngo 1.23\n' > /tmp/build/go.mod
+              cd /tmp/build && go build -ldflags="-s -w" -o /gateway/resume-gateway .
+          volumeMounts:
+            - name: gateway-src
+              mountPath: /src
+            - name: gateway-bin
+              mountPath: /gateway
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+              ephemeral-storage: 256Mi
       containers:
-        - name: nginx
-          image: docker.io/library/nginx:1.27-alpine
+        - name: gateway
+          image: docker.io/library/alpine:3.20
+          command: ["/gateway/resume-gateway"]
           ports:
             - name: http
               containerPort: 8080
+          env:
+            - name: RESUME_LINK_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: site-link-signing
+                  key: key
+            - name: PUBLIC_ROOT
+              value: /srv/public
+            - name: PRIVATE_CV_ROOT
+              value: /srv/private/cv
+            - name: LISTEN
+              value: ":8080"
           volumeMounts:
-            - name: nginx-config
-              mountPath: /etc/nginx/nginx.conf
-              subPath: nginx.conf
+            - name: gateway-bin
+              mountPath: /gateway
               readOnly: true
             - name: content
               mountPath: /srv
@@ -30,15 +68,17 @@ spec:
             limits:
               cpu: 100m
               memory: 128Mi
-              ephemeral-storage: 512Mi
+              ephemeral-storage: 256Mi
             requests:
               cpu: 50m
               memory: 64Mi
-              ephemeral-storage: 256Mi
+              ephemeral-storage: 128Mi
       volumes:
-        - name: nginx-config
+        - name: gateway-src
           configMap:
-            name: site-nginx
+            name: site-gateway-src
+        - name: gateway-bin
+          emptyDir: {}
         - name: content
           persistentVolumeClaim:
             claimName: site-content

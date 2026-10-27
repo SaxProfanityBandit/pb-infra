@@ -3,7 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yml
   - pvc.yml
-  - nginx-configmap.yml
+  - gateway-configmap.yml
   - deployment.yml
   - service.yml
   - ingress_site.yml
