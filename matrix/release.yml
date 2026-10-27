@@ -17,13 +17,19 @@ spec:
         kind: HelmRepository
         name: ananace
         namespace: matrix
+  valuesFrom:
+    - kind: Secret
+      name: synapse-email
+      optional: true
+      valuesKey: values.yaml
   values:
     serverName: chat.sax.lgbt
     publicServerName: chat.sax.lgbt
     config:
       publicBaseurl: https://chat.sax.lgbt/
       reportStats: false
-      enableRegistration: false
+      # Token-only signup; see pb-infra-docs matrix-registration-invites.md
+      enableRegistration: true
       trustedKeyServers:
         - server_name: matrix.org
     signingkey:
@@ -55,6 +61,18 @@ spec:
       server:
         m.server: chat.sax.lgbt:443
     extraConfig:
+      registration_requires_token: true
+      registrations_require_3pid:
+        - email
+      # Set verify_emails: true via secret synapse-email when SMTP password is configured.
+      verify_emails: false
+      email:
+        smtp_host: stalwart-mailserver.mailserver.svc.cluster.local
+        smtp_port: 587
+        smtp_user: synapse
+        require_transport_security: true
+        notif_from: "Sax Chat <noreply@chat.sax.lgbt>"
+        enable_notifs: false
       app_service_config_files:
         - /synapse/config/conf.d/hookshot-registration.yaml
       experimental_features:

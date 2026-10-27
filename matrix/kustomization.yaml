@@ -11,3 +11,4 @@ resources:
   - hookshot-crypto-pvc.yml
   - hookshot-queue-redis.yml
   - ingress-hooks-sax.yml
+  - ingress-approve-sax.yml

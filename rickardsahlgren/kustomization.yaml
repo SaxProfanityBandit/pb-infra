@@ -13,6 +13,7 @@ configMapGenerator:
     files:
       - main.go=gateway/main.go
       - contact.go=gateway/contact.go
+      - matrix_approve.go=gateway/matrix_approve.go
 
 generatorOptions:
   disableNameSuffixHash: true

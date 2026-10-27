@@ -24,13 +24,15 @@ const (
 )
 
 type contactConfig struct {
-	smtpHost   string
-	smtpUser   string
-	smtpPass   string
-	mailTo     string
-	mailFrom   string
-	hookshotURL string
-	publicURL   string
+	smtpHost      string
+	smtpUser      string
+	smtpPass      string
+	mailTo        string
+	mailFrom      string
+	hookshotURL   string
+	publicURL     string
+	linkSignKey   string
+	matrixApprove *matrixApproveConfig
 }
 
 func firstNonEmpty(vals ...string) string {
@@ -42,22 +44,24 @@ func firstNonEmpty(vals ...string) string {
 	return ""
 }
 
-func loadContactConfig() *contactConfig {
+func loadContactConfig(linkSignKey string) *contactConfig {
 	if strings.TrimSpace(os.Getenv("CONTACT_SMTP_USER")) == "" {
 		return nil
 	}
+	publicURL := strings.TrimRight(envOr("SITE_PUBLIC_URL", "https://rickardsahlgren.name"), "/")
 	return &contactConfig{
 		smtpHost:   envOr("CONTACT_SMTP_HOST", "stalwart-mailserver.mailserver.svc.cluster.local:587"),
 		smtpUser:   os.Getenv("CONTACT_SMTP_USER"),
 		smtpPass:   os.Getenv("CONTACT_SMTP_PASSWORD"),
 		mailTo:     envOr("CONTACT_MAIL_TO", "me@sax.lgbt"),
 		mailFrom:   envOr("CONTACT_MAIL_FROM", "me@sax.lgbt"),
-		// Prefer in-cluster URL (no Traefik TLS); fall back to public hooks.sax.lgbt.
-	hookshotURL: strings.TrimSpace(firstNonEmpty(
-		os.Getenv("HOOKSHOT_WEBHOOK_INTERNAL_URL"),
-		os.Getenv("HOOKSHOT_WEBHOOK_URL"),
-	)),
-		publicURL: strings.TrimRight(envOr("SITE_PUBLIC_URL", "https://rickardsahlgren.name"), "/"),
+		hookshotURL: strings.TrimSpace(firstNonEmpty(
+			os.Getenv("HOOKSHOT_WEBHOOK_INTERNAL_URL"),
+			os.Getenv("HOOKSHOT_WEBHOOK_URL"),
+		)),
+		publicURL:     publicURL,
+		linkSignKey:   linkSignKey,
+		matrixApprove: loadMatrixApproveConfig(publicURL),
 	}
 }
 
@@ -107,12 +111,19 @@ func handleContact(cfg *contactConfig) http.HandlerFunc {
 		}
 		fmt.Fprintf(&body, "\n%s\n", message)
 
+		var approveURL string
+		if cfg.matrixApprove != nil && cfg.linkSignKey != "" && looksLikeMatrixAccessRequest(message) {
+			approveURL = buildMatrixApproveURL(cfg.linkSignKey, matrixApprovePublicBase(), email, name)
+			fmt.Fprintf(&body, "\n---\nApprove (create token%s):\n%s\n",
+				tern(email != "", " and email invitee", ""), approveURL)
+		}
+
 		if err := sendContactSMTP(cfg, subject, body.String(), email); err != nil {
 			log.Printf("contact smtp: %v", err)
 			http.Error(w, "Could not send message", http.StatusBadGateway)
 			return
 		}
-		if err := notifyHookshot(r.Context(), cfg, name, email, message); err != nil {
+		if err := notifyHookshot(r.Context(), cfg, name, email, message, approveURL); err != nil {
 			log.Printf("contact hookshot: %v", err)
 		}
 		http.Redirect(w, r, cfg.publicURL+"/?contact=sent", http.StatusSeeOther)
@@ -198,7 +209,14 @@ func sendSTARTTLS(addr, user, pass, from string, to []string, msg []byte) error 
 	return c.Quit()
 }
 
-func notifyHookshot(ctx context.Context, cfg *contactConfig, name, email, message string) error {
+func tern(cond bool, a, b string) string {
+	if cond {
+		return a
+	}
+	return b
+}
+
+func notifyHookshot(ctx context.Context, cfg *contactConfig, name, email, message, approveURL string) error {
 	if cfg.hookshotURL == "" {
 		return nil
 	}
@@ -212,6 +230,9 @@ func notifyHookshot(ctx context.Context, cfg *contactConfig, name, email, messag
 	payload := map[string]string{
 		"text":     text.String(),
 		"username": "rickardsahlgren.name",
+	}
+	if approveURL != "" {
+		payload["approve_url"] = approveURL
 	}
 	raw, _ := json.Marshal(payload)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.hookshotURL, bytes.NewReader(raw))

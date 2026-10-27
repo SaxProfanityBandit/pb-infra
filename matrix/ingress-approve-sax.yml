@@ -1,0 +1,23 @@
+# Matrix registration approve UI (handler runs on site gateway until split out).
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: matrix-reg-approve
+  namespace: matrix
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`approve.sax.lgbt`) && PathPrefix(`/matrix/approve`)
+      services:
+        - name: site
+          namespace: rickardsahlgren
+          kind: Service
+          port: http
+  tls:
+    certResolver: cert-resolver
+    domains:
+      - main: approve.sax.lgbt
