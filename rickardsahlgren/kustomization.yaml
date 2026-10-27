@@ -12,6 +12,7 @@ configMapGenerator:
     namespace: rickardsahlgren
     files:
       - main.go=gateway/main.go
+      - contact.go=gateway/contact.go
 
 generatorOptions:
   disableNameSuffixHash: true

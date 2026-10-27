@@ -1,0 +1,21 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: hookshot-webhooks
+  namespace: matrix
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`hooks.sax.lgbt`) && PathPrefix(`/webhook`)
+      services:
+        - name: hookshot
+          kind: Service
+          port: 80
+  tls:
+    certResolver: cert-resolver
+    domains:
+      - main: hooks.sax.lgbt

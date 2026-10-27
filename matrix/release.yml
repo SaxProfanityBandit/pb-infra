@@ -54,7 +54,20 @@ spec:
           base_url: https://chat.sax.lgbt
       server:
         m.server: chat.sax.lgbt:443
+    extraConfig:
+      app_service_config_files:
+        - /synapse/config/conf.d/hookshot-registration.yaml
     synapse:
+      extraVolumes:
+        - name: hookshot-appservice
+          secret:
+            secretName: hookshot-appservice
+            optional: true
+      extraVolumeMounts:
+        - name: hookshot-appservice
+          mountPath: /synapse/config/conf.d/hookshot-registration.yaml
+          subPath: registration.yaml
+          readOnly: true
       strategy:
         type: Recreate
       resources:

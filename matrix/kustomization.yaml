@@ -3,6 +3,9 @@ kind: Kustomization
 resources:
   - namespace.yml
   - repository.yml
+  - hookshot-repository.yml
   - postgresql-release.yml
   - release.yml
   - ingress-chat-sax.yml
+  - hookshot-release.yml
+  - ingress-hooks-sax.yml

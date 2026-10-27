@@ -59,6 +59,12 @@ func main() {
 		handleCVPDF(w, r, secret, addr)
 	})
 	mux.Handle("/cv/", gateCV(secret, privateCV))
+	if contact := loadContactConfig(); contact != nil {
+		mux.HandleFunc("/contact", handleContact(contact))
+		log.Print("Contact form enabled (POST /contact)")
+	} else {
+		log.Print("Contact form disabled (set CONTACT_SMTP_USER and secret)")
+	}
 	mux.Handle("/", http.FileServer(http.Dir(publicRoot)))
 
 	s := &http.Server{

@@ -24,7 +24,7 @@ spec:
             - |
               set -e
               mkdir -p /tmp/build
-              cp /src/main.go /tmp/build/
+              cp /src/*.go /tmp/build/
               printf 'module resume-gateway\ngo 1.23\n' > /tmp/build/go.mod
               cd /tmp/build && go build -ldflags="-s -w" -o /gateway/resume-gateway .
           volumeMounts:
@@ -71,7 +71,31 @@ spec:
             - name: LISTEN
               value: ":8080"
             - name: GATEWAY_REV
-              value: "pdf-inline-2"
+              value: "contact-hookshot-1"
+            - name: CONTACT_SMTP_HOST
+              value: "stalwart-mailserver.mailserver.svc.cluster.local:587"
+            - name: CONTACT_MAIL_TO
+              value: "me@sax.lgbt"
+            - name: CONTACT_MAIL_FROM
+              value: "me@sax.lgbt"
+            - name: CONTACT_SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: site-contact
+                  key: smtp_user
+                  optional: true
+            - name: CONTACT_SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: site-contact
+                  key: smtp_password
+                  optional: true
+            - name: HOOKSHOT_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: site-contact
+                  key: hookshot_webhook_url
+                  optional: true
             - name: SITE_PUBLIC_URL
               value: "https://rickardsahlgren.name"
             - name: KUTT_API_URL
