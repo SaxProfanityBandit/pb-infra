@@ -321,8 +321,9 @@ func handleCVPDF(w http.ResponseWriter, r *http.Request, secret, listenAddr stri
 		"--no-sandbox",
 		"--disable-dev-shm-usage",
 		"--run-all-compositor-stages-before-draw",
-		"--virtual-time-budget=15000",
-		"--print-to-pdf-no-header",
+		"--virtual-time-budget=20000",
+		"--prefer-css-page-size",
+		"--no-pdf-header-footer",
 		"--print-to-pdf=" + tmpPath,
 		pageURL,
 	}
