@@ -2,13 +2,16 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/mail"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -20,6 +23,10 @@ func matrixServerName() string {
 
 func joinPublicBase() string {
 	return strings.TrimRight(envOr("MATRIX_JOIN_PUBLIC_URL", "https://chat.sax.lgbt/join"), "/")
+}
+
+func homeserverPublicURL() string {
+	return strings.TrimRight(envOr("MATRIX_HOMESERVER_URL", "https://chat.sax.lgbt"), "/")
 }
 
 func validateMatrixLocalpart(s string) error {
@@ -83,7 +90,7 @@ func handleMatrixRequest(cfg *matrixRequestConfig) http.HandlerFunc {
 			return
 		}
 		if hp := strings.TrimSpace(r.FormValue("_hp")); hp != "" {
-			http.Redirect(w, r, joinPublicBase()+"?requested=1", http.StatusSeeOther)
+			http.Redirect(w, r, joinPublicBase(), http.StatusSeeOther)
 			return
 		}
 		localpart := strings.TrimSpace(strings.ToLower(r.FormValue("username")))
@@ -93,26 +100,39 @@ func handleMatrixRequest(cfg *matrixRequestConfig) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if email == "" {
-			http.Error(w, "Email required", http.StatusBadRequest)
+		if email != "" {
+			if _, err := mail.ParseAddress(email); err != nil {
+				http.Error(w, "Invalid email", http.StatusBadRequest)
+				return
+			}
+		}
+		rid, err := newRequestID()
+		if err != nil {
+			http.Error(w, "Could not create request", http.StatusInternalServerError)
 			return
 		}
-		if _, err := mail.ParseAddress(email); err != nil {
-			http.Error(w, "Invalid email", http.StatusBadRequest)
-			return
-		}
+		putPendingRequest(rid, &pendingRequest{
+			Localpart: localpart,
+			Email:     email,
+			Display:   display,
+			CreatedAt: time.Now(),
+		})
 		mxid := "@" + localpart + ":" + cfg.serverName
-		approveURL := buildMatrixApproveURL(cfg.signSecret, cfg.approveBase, email, display, localpart)
+		approveURL := buildMatrixApproveURL(cfg.signSecret, cfg.approveBase, email, display, localpart, rid)
 
 		subject := fmt.Sprintf("[chat.sax.lgbt] Access request %s", mxid)
 		var body strings.Builder
 		fmt.Fprintf(&body, "Matrix access request\n\n")
 		fmt.Fprintf(&body, "Requested ID: %s\n", mxid)
-		fmt.Fprintf(&body, "Email: %s\n", email)
+		if email != "" {
+			fmt.Fprintf(&body, "Email: %s\n", email)
+		} else {
+			fmt.Fprintf(&body, "Email: (not provided)\n")
+		}
 		if display != "" {
 			fmt.Fprintf(&body, "Display name: %s\n", display)
 		}
-		fmt.Fprintf(&body, "\nApprove (create invite link):\n%s\n", approveURL)
+		fmt.Fprintf(&body, "\nApprove URL:\n%s\n", approveURL)
 
 		if err := sendSTARTTLS(cfg.smtpHost, cfg.smtpUser, cfg.smtpPass, cfg.mailFrom, []string{cfg.mailTo}, plainEmail(cfg.mailFrom, cfg.mailTo, subject, body)); err != nil {
 			log.Printf("matrix request smtp: %v", err)
@@ -122,7 +142,51 @@ func handleMatrixRequest(cfg *matrixRequestConfig) http.HandlerFunc {
 		if err := notifyMatrixRequestHookshot(r.Context(), cfg, mxid, email, display, approveURL); err != nil {
 			log.Printf("matrix request hookshot: %v", err)
 		}
-		http.Redirect(w, r, joinPublicBase()+"?requested=1", http.StatusSeeOther)
+		wsig := waitSig(cfg.signSecret, rid)
+		q := url.Values{}
+		q.Set("rid", rid)
+		q.Set("wsig", wsig)
+		if email != "" {
+			q.Set("mail", "1")
+		}
+		http.Redirect(w, r, joinPublicBase()+"?"+q.Encode(), http.StatusSeeOther)
+	}
+}
+
+func handleMatrixRequestStatus(cfg *matrixRequestConfig) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if cfg == nil {
+			http.Error(w, "Not configured", http.StatusServiceUnavailable)
+			return
+		}
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		rid := strings.TrimSpace(r.URL.Query().Get("rid"))
+		wsig := strings.TrimSpace(r.URL.Query().Get("wsig"))
+		if rid == "" || wsig == "" || !validWaitSig(cfg.signSecret, rid, wsig) {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Content-Type", "application/json")
+		pr, ok := getPendingRequest(rid)
+		if !ok {
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "expired"})
+			return
+		}
+		if !pr.Ready || pr.Token == "" {
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "pending"})
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"status":      "ready",
+			"token":       pr.Token,
+			"user":        pr.Localpart,
+			"server":      cfg.serverName,
+			"homeserver":  homeserverPublicURL(),
+		})
 	}
 }
 
@@ -133,7 +197,11 @@ func notifyMatrixRequestHookshot(ctx context.Context, cfg *matrixRequestConfig, 
 	var text strings.Builder
 	fmt.Fprintf(&text, "Matrix access request (chat.sax.lgbt)\n\n")
 	fmt.Fprintf(&text, "Requested ID: %s\n", mxid)
-	fmt.Fprintf(&text, "Email: %s\n", email)
+	if email != "" {
+		fmt.Fprintf(&text, "Email: %s\n", email)
+	} else {
+		fmt.Fprintf(&text, "Email: (not provided)\n")
+	}
 	if display != "" {
 		fmt.Fprintf(&text, "Display name: %s\n", display)
 	}

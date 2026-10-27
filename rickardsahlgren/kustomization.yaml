@@ -15,6 +15,7 @@ configMapGenerator:
       - contact.go=gateway/contact.go
       - matrix_approve.go=gateway/matrix_approve.go
       - matrix_request.go=gateway/matrix_request.go
+      - matrix_request_store.go=gateway/matrix_request_store.go
 
 generatorOptions:
   disableNameSuffixHash: true

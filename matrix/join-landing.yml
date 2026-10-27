@@ -18,10 +18,10 @@ data:
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
-      <title>Join chat.sax.lgbt</title>
+      <title>Register on chat.sax.lgbt</title>
       <style>
         :root { --fg:#1a1a1a; --muted:#555; --bg:#f6f6f6; --ok:#0a6; --err:#b00; }
-        body{font-family:system-ui,sans-serif;max-width:28rem;margin:2rem auto;padding:0 1rem;line-height:1.5;color:var(--fg)}
+        body{font-family:system-ui,sans-serif;max-width:32rem;margin:2rem auto;padding:0 1rem;line-height:1.5;color:var(--fg)}
         h1{font-size:1.35rem}
         label{display:block;margin:.75rem 0 .2rem;font-size:.9rem}
         input{width:100%;box-sizing:border-box;padding:.45rem .5rem;font-size:1rem}
@@ -30,66 +30,112 @@ data:
         .err{color:var(--err)}
         .ok{color:var(--ok)}
         .box{background:var(--bg);padding:1rem;border-radius:6px;margin:1rem 0}
-        #done[hidden],#form[hidden],#request[hidden],#request-sent[hidden]{display:none!important}
+        #wait[hidden],#wait-mail[hidden],#invite[hidden],#request[hidden]{display:none!important}
+        .client-intro{margin:1rem 0 .5rem;font-size:.9rem}
+        .client-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.5rem;margin:.75rem 0 1.25rem}
+        .client-card{display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.65rem .4rem;border:1px solid #ddd;border-radius:8px;background:#fff;color:inherit;text-decoration:none;font-size:.8rem;text-align:center;transition:border-color .15s,box-shadow .15s}
+        .client-card:hover{border-color:#888;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+        .client-card img{width:2.25rem;height:2.25rem;object-fit:contain}
+        .client-card .name{font-weight:600;line-height:1.2}
+        .client-card .get{color:var(--muted);font-size:.75rem}
+        .connect{margin-top:1.25rem;padding-top:1rem;border-top:1px solid #ddd}
+        .connect h3{font-size:1rem;margin:0 0 .35rem}
+        .btn-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.65rem}
+        a.btn{display:inline-block;padding:.55rem .85rem;border-radius:6px;font-size:.9rem;font-weight:600;text-decoration:none;border:1px solid #ccc;background:#fff;color:var(--fg)}
+        a.btn:hover{border-color:#666}
+        a.btn.primary{background:#0dbd8b;border-color:#0a9a72;color:#fff}
+        a.btn.primary:hover{background:#0aa87a}
         .mxid{font-weight:600}
-        details{margin-top:1.5rem;font-size:.9rem}
+        .token{font-family:monospace;word-break:break-all;width:100%;padding:.5rem;font-size:.95rem}
+        .spin{display:inline-block;width:1rem;height:1rem;border:2px solid #ccc;border-top-color:#333;border-radius:50%;animation:sp .8s linear infinite;vertical-align:middle;margin-right:.35rem}
+        @keyframes sp{to{transform:rotate(360deg)}}
+        .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
       </style>
     </head>
     <body>
-      <h1>Join Matrix</h1>
-      <p class="muted">Homeserver <strong>chat.sax.lgbt</strong></p>
-
-      <p id="request-sent" hidden class="ok">Request sent — you'll get an invite link if approved.</p>
+      <h1>Register on chat.sax.lgbt</h1>
+      <p class="muted">Registration on <strong>chat.sax.lgbt</strong> is token-only. Each request is approved manually before a token is issued.</p>
 
       <div id="request">
-        <h2>Request access</h2>
-        <p class="muted">Pick the username you want. If approved, you'll get a link to finish signup.</p>
+        <h2>Request a token</h2>
+        <p class="muted">Choose a username (letters, numbers, <code>.</code> <code>_</code> <code>=</code> <code>-</code> <code>/</code> only). This page shows the token once the request is approved.</p>
         <p class="muted">Matrix ID: <span class="mxid" id="mxid-preview">@…:chat.sax.lgbt</span></p>
-        <form action="https://approve.sax.lgbt/matrix/request" method="post">
+        <form action="/matrix/request" method="post">
           <label>Username</label>
           <input name="username" id="req-user" required pattern="[a-z0-9._=\\-/]+" autocomplete="username">
-          <label>Email</label>
-          <input name="email" type="email" required autocomplete="email">
+          <label>Email <span class="muted">(optional)</span></label>
+          <input name="email" type="email" autocomplete="email">
           <label>Display name <span class="muted">(optional)</span></label>
           <input name="display_name" autocomplete="name">
-          <label class="contact-form__hp" aria-hidden="true">Leave blank<input name="_hp" tabindex="-1" autocomplete="off"></label>
-          <button type="submit">Submit request</button>
+          <label class="hp" aria-hidden="true"><input type="text" name="_hp" tabindex="-1" autocomplete="off"></label>
+          <button type="submit">Send request</button>
         </form>
       </div>
 
-      <div id="form" hidden>
-        <p>Create your account here — no app install required to start.</p>
-        <form id="reg">
-          <label>Username</label>
-          <input name="username" required autocomplete="username" pattern="[a-z0-9._=\\-/]+" title="Lowercase letters, numbers, . _ = - /">
-          <label>Password</label>
-          <input name="password" type="password" required autocomplete="new-password" minlength="8">
-          <label>Email <span class="muted">(required on this server)</span></label>
-          <input name="email" type="email" required autocomplete="email">
-          <button type="submit">Create account</button>
-        </form>
-        <p id="status" class="muted" role="status"></p>
+      <div id="wait" hidden>
+        <p><span class="spin"></span> Pending approval</p>
+        <p class="muted">Keep this tab open to get the token here when the request is approved.</p>
       </div>
 
-      <div id="done" hidden class="box">
-        <p class="ok"><strong>Account created.</strong></p>
-        <p id="mxid"></p>
-        <p><a id="element-link" href="#" rel="noopener">Open Element (web)</a> — sign in with the username and password you just chose.</p>
-        <p class="muted">Or install Element, FluffyChat, etc. and set server to <code>https://chat.sax.lgbt</code>.</p>
+      <div id="wait-mail" hidden>
+        <p><strong>Pending approval</strong></p>
+        <p>You entered an email address. You can close this tab.</p>
+        <p class="muted">After approval, the token and join link go to that address (check spam). If this tab stays open, the token also appears below.</p>
       </div>
 
-      <details>
-        <summary>Prefer a Matrix app?</summary>
-        <p class="muted">There is no reliable <code>matrix://</code> link that passes a registration token into every client. Use this page, or paste the token from your invite link into the app when it asks.</p>
-      </details>
+      <div id="invite" hidden class="box">
+        <p id="invite-mxid" class="mxid"></p>
+        <label>Registration token</label>
+        <input class="token" id="invite-token" readonly>
+        <button type="button" id="copy-token">Copy token</button>
+        <p class="client-intro muted">Install a client from the list below, open Element via the buttons, and paste this token when registration asks for it.</p>
+        <div class="client-grid" role="list">
+          <a class="client-card" role="listitem" href="https://element.io/download" target="_blank" rel="noopener noreferrer">
+            <img src="https://element.io/assets-32bb636196f91ed59d7a49190e26b42c/5ef25c0d30ee3108da4c25e9/5f365d3197194f8c73b00112_logo-mark-primary.svg" width="36" height="36" alt="">
+            <span class="name">Element</span>
+            <span class="get">Download</span>
+          </a>
+          <a class="client-card" role="listitem" href="https://fluffychat.im" target="_blank" rel="noopener noreferrer">
+            <img src="https://gitlab.com/famedly/fluffychat/-/raw/main/assets/logo.png" width="36" height="36" alt="">
+            <span class="name">FluffyChat</span>
+            <span class="get">Get app</span>
+          </a>
+          <a class="client-card" role="listitem" href="https://schildi.chat/" target="_blank" rel="noopener noreferrer">
+            <img src="https://avatars.githubusercontent.com/u/73706786?v=4" width="36" height="36" alt="">
+            <span class="name">SchildiChat</span>
+            <span class="get">Get app</span>
+          </a>
+          <a class="client-card" role="listitem" href="https://cinny.in/" target="_blank" rel="noopener noreferrer">
+            <img src="https://cinny.in/assets/favicon-48x48.png" width="36" height="36" alt="">
+            <span class="name">Cinny</span>
+            <span class="get">Web app</span>
+          </a>
+          <a class="client-card" role="listitem" href="https://nheko-reborn.github.io/" target="_blank" rel="noopener noreferrer">
+            <img src="https://avatars.githubusercontent.com/u/46657606?v=4" width="36" height="36" alt="">
+            <span class="name">Nheko</span>
+            <span class="get">Desktop</span>
+          </a>
+          <a class="client-card" role="listitem" href="https://matrix.org/ecosystem/clients/" target="_blank" rel="noopener noreferrer">
+            <img src="https://matrix.org/images/matrix-logo.svg" width="36" height="36" alt="">
+            <span class="name">More clients</span>
+            <span class="get">matrix.org</span>
+          </a>
+        </div>
+        <p class="muted">Homeserver URL: <code id="hs-url">https://chat.sax.lgbt</code>. Use the same username you requested. The client must collect an email address during signup.</p>
+        <section class="connect" aria-labelledby="connect-heading">
+          <h3 id="connect-heading">Element with this homeserver</h3>
+          <p class="muted">These links open Element signup with the homeserver URL above prefilled.</p>
+          <div class="btn-row">
+            <a class="btn primary" id="open-element-web" href="#" rel="noopener noreferrer">Element (web)</a>
+            <a class="btn" id="open-element-mobile" href="#" rel="noopener noreferrer">Element (phone)</a>
+          </div>
+        </section>
+      </div>
 
       <script>
     (function () {
+      var HS = "https://chat.sax.lgbt";
       var params = new URLSearchParams(location.search);
-      if (params.get("requested") === "1") {
-        document.getElementById("request").hidden = true;
-        document.getElementById("request-sent").hidden = false;
-      }
       var reqUser = document.getElementById("req-user");
       var preview = document.getElementById("mxid-preview");
       function updPreview() {
@@ -99,82 +145,58 @@ data:
       reqUser.addEventListener("input", updPreview);
       updPreview();
 
+      function showInvite(token, user, server) {
+        document.getElementById("request").hidden = true;
+        document.getElementById("wait").hidden = true;
+        document.getElementById("wait-mail").hidden = true;
+        document.getElementById("invite").hidden = false;
+        document.getElementById("invite-token").value = token;
+        document.getElementById("invite-mxid").textContent = "@" + user + ":" + (server || "chat.sax.lgbt");
+        document.getElementById("hs-url").textContent = HS;
+        document.getElementById("open-element-web").href =
+          "https://app.element.io/#/register?hs_url=" + encodeURIComponent(HS);
+        document.getElementById("open-element-mobile").href =
+          "https://mobile.element.io/element?account_provider=chat.sax.lgbt";
+        document.getElementById("copy-token").onclick = function () {
+          navigator.clipboard.writeText(token);
+        };
+      }
+
       var token = params.get("token");
-      if (!token) return;
-      document.getElementById("request").hidden = true;
-      document.getElementById("request-sent").hidden = true;
-      document.getElementById("form").hidden = false;
-      var hint = params.get("user");
-      var un = document.querySelector("#reg input[name=username]");
-      if (hint && un) un.value = hint;
-
-      var HS = location.origin;
-      var registerUrl = HS + "/_matrix/client/v3/register";
-      var elementBase = "https://app.element.io/#/login?hs_url=" + encodeURIComponent(HS);
-
-      function authStage(stage, t) {
-        if (stage === "m.login.dummy") return { type: "m.login.dummy" };
-        if (stage === "m.login.registration_token") return { type: "m.login.registration_token", token: t };
-        throw new Error("Unsupported auth stage: " + stage);
+      var user = params.get("user");
+      if (token) {
+        showInvite(token, user || "…", "chat.sax.lgbt");
+        return;
       }
 
-      async function registerUser(username, password, email, regToken) {
-        var session = null;
-        var completed = [];
-        var stages = [];
-        for (var i = 0; i < 12; i++) {
-          var body = {
-            username: username,
-            password: password,
-            email: email,
-            initial_device_display_name: "Join page"
-          };
-          if (session) {
-            body.auth = { session: session };
-            var next = null;
-            for (var s = 0; s < stages.length; s++) {
-              if (completed.indexOf(stages[s]) < 0) { next = stages[s]; break; }
-            }
-            if (next) Object.assign(body.auth, authStage(next, regToken));
-          }
-          var res = await fetch(registerUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-          });
-          var data = await res.json().catch(function () { return {}; });
-          if (res.ok) return data;
-          if (res.status === 401 && data.session) {
-            session = data.session;
-            completed = data.completed || [];
-            if (data.flows && data.flows[0] && data.flows[0].stages) stages = data.flows[0].stages;
-            continue;
-          }
-          var msg = data.error || data.errcode || ("HTTP " + res.status);
-          throw new Error(msg);
+      var rid = params.get("rid");
+      var wsig = params.get("wsig");
+      var mailed = params.get("mail") === "1";
+      if (rid && wsig) {
+        document.getElementById("request").hidden = true;
+        if (mailed) {
+          document.getElementById("wait-mail").hidden = false;
+        } else {
+          document.getElementById("wait").hidden = false;
         }
-        throw new Error("Registration did not complete");
+        function poll() {
+          fetch("/matrix/request/status?rid=" + encodeURIComponent(rid) + "&wsig=" + encodeURIComponent(wsig))
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+              if (d.status === "ready") {
+                showInvite(d.token, d.user, d.server);
+                return;
+              }
+              if (d.status === "expired") {
+                document.getElementById("wait").innerHTML = "<p class=\"err\">This request expired after 7 days. Submit the form again.</p>";
+                return;
+              }
+              setTimeout(poll, 3000);
+            })
+            .catch(function () { setTimeout(poll, 5000); });
+        }
+        poll();
       }
-
-      document.getElementById("reg").addEventListener("submit", function (e) {
-        e.preventDefault();
-        var st = document.getElementById("status");
-        st.textContent = "Creating account…";
-        st.className = "muted";
-        var fd = new FormData(e.target);
-        registerUser(fd.get("username"), fd.get("password"), fd.get("email"), token)
-          .then(function (data) {
-            document.getElementById("form").hidden = true;
-            document.getElementById("done").hidden = false;
-            document.getElementById("mxid").textContent = data.user_id || "";
-            document.getElementById("element-link").href = elementBase;
-            st.textContent = "";
-          })
-          .catch(function (err) {
-            st.textContent = err.message || String(err);
-            st.className = "err";
-          });
-      });
     })();
       </script>
     </body>

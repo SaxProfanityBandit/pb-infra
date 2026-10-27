@@ -70,7 +70,8 @@ func main() {
 		log.Print("Matrix signed approve URLs (GET/POST /matrix/approve)")
 		if mrc := loadMatrixRequestConfig(secret, ma); mrc != nil {
 			mux.HandleFunc("/matrix/request", handleMatrixRequest(mrc))
-			log.Print("Matrix access requests (POST /matrix/request)")
+			mux.HandleFunc("/matrix/request/status", handleMatrixRequestStatus(mrc))
+			log.Print("Matrix access requests (POST /matrix/request, GET /matrix/request/status)")
 		}
 	} else {
 		log.Print("Matrix invite disabled (set SYNAPSE_ADMIN_ACCESS_TOKEN)")

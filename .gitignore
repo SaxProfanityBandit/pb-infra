@@ -1,3 +1,4 @@
+.cursor/
 mailserver/*-private.yaml
 mailserver/rancher-secret.local.yaml
 mailserver/stalwart-helm-env.yaml

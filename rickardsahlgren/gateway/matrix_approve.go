@@ -64,8 +64,8 @@ func loadMatrixApproveConfig(_ string) *matrixApproveConfig {
 	return cfg
 }
 
-func matrixApprovePayload(expStr, email, name, localpart string) string {
-	return "matrix-approve:" + expStr + "|" + strings.ToLower(strings.TrimSpace(email)) + "|" + strings.TrimSpace(name) + "|" + strings.ToLower(strings.TrimSpace(localpart))
+func matrixApprovePayload(expStr, email, name, localpart, requestID string) string {
+	return "matrix-approve:" + expStr + "|" + strings.ToLower(strings.TrimSpace(email)) + "|" + strings.TrimSpace(name) + "|" + strings.ToLower(strings.TrimSpace(localpart)) + "|" + strings.TrimSpace(requestID)
 }
 
 func validPayloadSig(secret, payload, sig string) bool {
@@ -73,10 +73,10 @@ func validPayloadSig(secret, payload, sig string) bool {
 	return subtle.ConstantTimeCompare([]byte(expected), []byte(sig)) == 1
 }
 
-func buildMatrixApproveURL(secret, publicURL, email, name, localpart string) string {
+func buildMatrixApproveURL(secret, publicURL, email, name, localpart, requestID string) string {
 	exp := time.Now().Add(matrixApproveTTL).Unix()
 	expStr := strconv.FormatInt(exp, 10)
-	payload := matrixApprovePayload(expStr, email, name, localpart)
+	payload := matrixApprovePayload(expStr, email, name, localpart, requestID)
 	sig := sign(secret, payload)
 	q := url.Values{}
 	q.Set("exp", expStr)
@@ -89,6 +89,9 @@ func buildMatrixApproveURL(secret, publicURL, email, name, localpart string) str
 	}
 	if localpart != "" {
 		q.Set("user", localpart)
+	}
+	if requestID != "" {
+		q.Set("rid", requestID)
 	}
 	return publicURL + "/matrix/approve?" + q.Encode()
 }
@@ -108,6 +111,7 @@ type approveParams struct {
 	name      string
 	localpart string
 	server    string
+	requestID string
 }
 
 func validateApproveRequest(r *http.Request, secret string) (approveParams, error) {
@@ -126,12 +130,13 @@ func validateApproveRequest(r *http.Request, secret string) (approveParams, erro
 	email := strings.TrimSpace(r.URL.Query().Get("email"))
 	name := strings.TrimSpace(r.URL.Query().Get("name"))
 	localpart := strings.TrimSpace(strings.ToLower(r.URL.Query().Get("user")))
-	payload := matrixApprovePayload(expStr, email, name, localpart)
+	requestID := strings.TrimSpace(r.URL.Query().Get("rid"))
+	payload := matrixApprovePayload(expStr, email, name, localpart, requestID)
 	if !validPayloadSig(secret, payload, sig) {
 		return approveParams{}, fmt.Errorf("bad sig")
 	}
 	return approveParams{
-		email: email, name: name, localpart: localpart, server: matrixServerName(),
+		email: email, name: name, localpart: localpart, server: matrixServerName(), requestID: requestID,
 	}, nil
 }
 
@@ -170,17 +175,26 @@ func synapseNewRegistrationToken(ctx context.Context, cfg *matrixApproveConfig) 
 	return out.Token, nil
 }
 
-func sendJoinLinkEmail(cfg *matrixApproveConfig, to, joinURL string) error {
+func sendInviteEmail(cfg *matrixApproveConfig, to, token, joinURL, localpart string) error {
 	if cfg.smtpUser == "" || to == "" {
 		return fmt.Errorf("smtp or recipient not configured")
 	}
 	if _, err := mail.ParseAddress(to); err != nil {
 		return err
 	}
-	subject := "Your chat.sax.lgbt invite"
+	hs := homeserverPublicURL()
+	elementReg := "https://app.element.io/#/register?hs_url=" + url.QueryEscape(hs)
+	subject := "chat.sax.lgbt registration approved"
 	var body strings.Builder
-	fmt.Fprintf(&body, "Hi,\n\nYour invite link (single use, time-limited):\n\n  %s\n\n", joinURL)
-	fmt.Fprintf(&body, "Open the link to create your account.\n\n— Rickard\n")
+	fmt.Fprintf(&body, "Your registration request for chat.sax.lgbt was approved.\n\n")
+	if localpart != "" {
+		fmt.Fprintf(&body, "Username: @%s:%s\n\n", localpart, matrixServerName())
+	}
+	fmt.Fprintf(&body, "Registration token (one use):\n\n  %s\n\n", token)
+	fmt.Fprintf(&body, "Join page with token and client links:\n\n  %s\n\n", joinURL)
+	fmt.Fprintf(&body, "Element web signup (homeserver prefilled):\n\n  %s\n\n", elementReg)
+	fmt.Fprintf(&body, "Homeserver URL: %s\n\n", hs)
+	fmt.Fprintf(&body, "If you did not request access, delete this message.\n\n/Rickard\n")
 	return sendSTARTTLS(cfg.smtpHost, cfg.smtpUser, cfg.smtpPass, cfg.mailFrom, []string{to}, plainEmail(cfg.mailFrom, to, subject, body.String()))
 }
 
@@ -235,11 +249,12 @@ func handleMatrixApprove(secret string, cfg *matrixApproveConfig) http.HandlerFu
 			http.Error(w, "Could not create token", http.StatusBadGateway)
 			return
 		}
-		sendMail := r.FormValue("send") == "1"
+		sendMail := params.email != "" && r.FormValue("skip_email") != "1"
 		var mailErr error
 		joinURL := buildJoinURL(token, params.localpart)
-		if sendMail && params.email != "" {
-			mailErr = sendJoinLinkEmail(cfg, params.email, joinURL)
+		fulfillPendingRequest(params.requestID, token, params.localpart)
+		if sendMail {
+			mailErr = sendInviteEmail(cfg, params.email, token, joinURL, params.localpart)
 			if mailErr != nil {
 				log.Printf("matrix approve invite mail: %v", mailErr)
 			}
@@ -252,9 +267,9 @@ func serveApproveConfirmPage(w http.ResponseWriter, r *http.Request, p approvePa
 	email := escHTML(p.email)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	var b strings.Builder
-	b.WriteString(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Approve Matrix access</title>
+	b.WriteString(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Approve Matrix registration</title>
 <style>body{font-family:system-ui,sans-serif;max-width:32rem;margin:2rem auto;padding:0 1rem;line-height:1.5}button{font-size:1.1rem;padding:.6rem 1.2rem}label{display:block;margin:1rem 0}</style></head><body>`)
-	b.WriteString(`<h1>Approve access?</h1>`)
+	b.WriteString(`<h1>Approve registration request</h1>`)
 	if p.localpart != "" {
 		fmt.Fprintf(&b, `<p><strong>Matrix ID:</strong> @%s:%s</p>`, escHTML(p.localpart), escHTML(p.server))
 	}
@@ -264,11 +279,12 @@ func serveApproveConfirmPage(w http.ResponseWriter, r *http.Request, p approvePa
 	if p.email != "" {
 		fmt.Fprintf(&b, `<p><strong>Email:</strong> %s</p>`, email)
 	}
-	b.WriteString(`<p>Creates a short-lived invite link for them to register.</p><form method="POST" action="`)
+	b.WriteString(`<p>Creates a one-use registration token and a join link for chat.sax.lgbt.</p><form method="POST" action="`)
 	b.WriteString(escHTML(r.URL.RequestURI()))
 	b.WriteString(`">`)
 	if p.email != "" {
-		fmt.Fprintf(&b, `<label><input type="checkbox" name="send" value="1" checked> Email invite link to %s</label>`, email)
+		fmt.Fprintf(&b, `<p class="muted">Unless you check Skip email, the token and join link go to %s.</p>`, email)
+		fmt.Fprintf(&b, `<label><input type="checkbox" name="skip_email" value="1"> Skip email (token only on the join page if they keep the tab open)</label>`)
 	}
 	b.WriteString(`<p><button type="submit">Approve</button></p></form></body></html>`)
 	_, _ = w.Write([]byte(b.String()))
@@ -284,9 +300,9 @@ func serveApproveResult(w http.ResponseWriter, p approveParams, joinURL string, 
 	b.WriteString(`</p>`)
 	if p.email != "" {
 		if sent && mailErr == nil {
-			fmt.Fprintf(&b, `<p>Emailed to <strong>%s</strong>.</p>`, escHTML(p.email))
+			fmt.Fprintf(&b, `<p>Sent the token and join link to <strong>%s</strong>.</p>`, escHTML(p.email))
 		} else if sent && mailErr != nil {
-			b.WriteString(`<p>Email failed — copy the link or add it in Kutt.</p>`)
+			b.WriteString(`<p>Email failed. Copy the link below.</p>`)
 		}
 	}
 	b.WriteString(`<button type="button" onclick="navigator.clipboard.writeText(document.getElementById('join').innerText)">Copy link</button>`)

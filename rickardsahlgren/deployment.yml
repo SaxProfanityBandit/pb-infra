@@ -71,7 +71,7 @@ spec:
             - name: LISTEN
               value: ":8080"
             - name: GATEWAY_REV
-              value: "matrix-request-approve-1"
+              value: "matrix-wait-poll-1"
             - name: MATRIX_JOIN_PUBLIC_URL
               value: "https://chat.sax.lgbt/join"
             - name: MATRIX_SERVER_NAME
