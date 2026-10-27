@@ -54,7 +54,6 @@ spec:
         host: pg-postgresql.sftpgo.svc.cluster.local
         port: 5432
         username: sftpgo
-        # Relative user home dirs are rooted here (PVC: /var/lib/sftpgo).
         users_base_dir: /var/lib/sftpgo/users
     envVars:
       - name: SFTPGO_HTTPD__BINDINGS__0__BASE_URL

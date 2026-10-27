@@ -1,0 +1,18 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: stalwart-acme-http01
+  namespace: mailserver
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: Host(`mail.sax.lgbt`) && PathPrefix(`/.well-known/acme-challenge`)
+      priority: 1000
+      services:
+        - name: stalwart-mailserver
+          kind: Service
+          port: http

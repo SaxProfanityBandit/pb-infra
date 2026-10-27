@@ -33,6 +33,15 @@ type contactConfig struct {
 	publicURL   string
 }
 
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if strings.TrimSpace(v) != "" {
+			return strings.TrimSpace(v)
+		}
+	}
+	return ""
+}
+
 func loadContactConfig() *contactConfig {
 	if strings.TrimSpace(os.Getenv("CONTACT_SMTP_USER")) == "" {
 		return nil
@@ -43,8 +52,12 @@ func loadContactConfig() *contactConfig {
 		smtpPass:   os.Getenv("CONTACT_SMTP_PASSWORD"),
 		mailTo:     envOr("CONTACT_MAIL_TO", "me@sax.lgbt"),
 		mailFrom:   envOr("CONTACT_MAIL_FROM", "me@sax.lgbt"),
-		hookshotURL: strings.TrimSpace(os.Getenv("HOOKSHOT_WEBHOOK_URL")),
-		publicURL:   strings.TrimRight(envOr("SITE_PUBLIC_URL", "https://rickardsahlgren.name"), "/"),
+		// Prefer in-cluster URL (no Traefik TLS); fall back to public hooks.sax.lgbt.
+	hookshotURL: strings.TrimSpace(firstNonEmpty(
+		os.Getenv("HOOKSHOT_WEBHOOK_INTERNAL_URL"),
+		os.Getenv("HOOKSHOT_WEBHOOK_URL"),
+	)),
+		publicURL: strings.TrimRight(envOr("SITE_PUBLIC_URL", "https://rickardsahlgren.name"), "/"),
 	}
 }
 
@@ -101,7 +114,6 @@ func handleContact(cfg *contactConfig) http.HandlerFunc {
 		}
 		if err := notifyHookshot(r.Context(), cfg, name, email, message); err != nil {
 			log.Printf("contact hookshot: %v", err)
-			// Mail already sent; still redirect success.
 		}
 		http.Redirect(w, r, cfg.publicURL+"/?contact=sent", http.StatusSeeOther)
 	}
@@ -124,6 +136,19 @@ func sendContactSMTP(cfg *contactConfig, subject, body, replyTo string) error {
 	return sendSTARTTLS(cfg.smtpHost, cfg.smtpUser, cfg.smtpPass, from, []string{to}, msg.Bytes())
 }
 
+func smtpTLSConfig(host string) *tls.Config {
+	serverName := strings.TrimSpace(os.Getenv("CONTACT_SMTP_TLS_SERVER_NAME"))
+	if serverName == "" {
+		serverName = host
+	}
+	cfg := &tls.Config{ServerName: serverName, MinVersion: tls.VersionTLS12}
+	switch strings.ToLower(strings.TrimSpace(os.Getenv("CONTACT_SMTP_TLS_INSECURE"))) {
+	case "1", "true", "yes":
+		cfg.InsecureSkipVerify = true
+	}
+	return cfg
+}
+
 func sendSTARTTLS(addr, user, pass, from string, to []string, msg []byte) error {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -142,7 +167,7 @@ func sendSTARTTLS(addr, user, pass, from string, to []string, msg []byte) error 
 	defer c.Close()
 
 	if ok, _ := c.Extension("STARTTLS"); ok {
-		if err := c.StartTLS(&tls.Config{ServerName: host, MinVersion: tls.VersionTLS12}); err != nil {
+		if err := c.StartTLS(smtpTLSConfig(host)); err != nil {
 			return err
 		}
 	}

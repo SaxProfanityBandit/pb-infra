@@ -9,13 +9,15 @@ spec:
   chart:
     spec:
       chart: hookshot
-      version: "0.1.13"
+      version: "0.1.16"
       sourceRef:
         kind: HelmRepository
         name: matrix-hookshot
         namespace: matrix
   values:
     replicaCount: 1
+    image:
+      tag: "7.3.2"
     hookshot:
       existingConfigMap: hookshot-config
       config: {}
@@ -24,3 +26,23 @@ spec:
     ingress:
       webhook:
         enabled: false
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: hookshot
+            patch: |
+              - op: add
+                path: /spec/template/spec/volumes/-
+                value:
+                  name: hookshot-crypto
+                  persistentVolumeClaim:
+                    claimName: hookshot-crypto
+              - op: add
+                path: /spec/template/spec/containers/0/volumeMounts/-
+                value:
+                  name: hookshot-crypto
+                  mountPath: /crypto

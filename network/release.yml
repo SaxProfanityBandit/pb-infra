@@ -12,11 +12,10 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: traefik
-        namespace: network #correct namespace.
+        namespace: network
   values:
     updateStrategy:
       type: Recreate
-      rollingUpdate: null
     persistence:
       enabled: true
     certResolvers:
@@ -66,7 +65,11 @@ spec:
         expose: true
         exposedPort: 587
         protocol: TCP
-      # Inbound MTA mail (other servers → you). Non-privileged bind inside pod.
+      submissions:
+        port: 10465
+        expose: true
+        exposedPort: 465
+        protocol: TCP
       smtp:
         port: 10025
         expose: true

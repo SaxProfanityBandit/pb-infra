@@ -71,9 +71,11 @@ spec:
             - name: LISTEN
               value: ":8080"
             - name: GATEWAY_REV
-              value: "contact-hookshot-1"
+              value: "contact-smtp-hookshot-4"
             - name: CONTACT_SMTP_HOST
               value: "stalwart-mailserver.mailserver.svc.cluster.local:587"
+            - name: CONTACT_SMTP_TLS_INSECURE
+              value: "1"
             - name: CONTACT_MAIL_TO
               value: "me@sax.lgbt"
             - name: CONTACT_MAIL_FROM
@@ -95,6 +97,12 @@ spec:
                 secretKeyRef:
                   name: site-contact
                   key: hookshot_webhook_url
+                  optional: true
+            - name: HOOKSHOT_WEBHOOK_INTERNAL_URL
+              valueFrom:
+                secretKeyRef:
+                  name: site-contact
+                  key: hookshot_webhook_internal_url
                   optional: true
             - name: SITE_PUBLIC_URL
               value: "https://rickardsahlgren.name"

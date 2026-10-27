@@ -14,7 +14,7 @@ spec:
       services:
         - name: hookshot
           kind: Service
-          port: 80
+          port: 9000
   tls:
     certResolver: cert-resolver
     domains:

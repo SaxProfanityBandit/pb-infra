@@ -8,4 +8,6 @@ resources:
   - release.yml
   - ingress-chat-sax.yml
   - hookshot-release.yml
+  - hookshot-crypto-pvc.yml
+  - hookshot-queue-redis.yml
   - ingress-hooks-sax.yml

@@ -57,6 +57,11 @@ spec:
     extraConfig:
       app_service_config_files:
         - /synapse/config/conf.d/hookshot-registration.yaml
+      experimental_features:
+        msc3202_transaction_extensions: true
+        msc2409_to_device_messages_enabled: true
+        msc3983_appservice_otk_claims: true
+        msc3984_appservice_key_query: true
     synapse:
       extraVolumes:
         - name: hookshot-appservice

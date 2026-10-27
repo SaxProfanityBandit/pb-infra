@@ -72,3 +72,16 @@ spec:
               - op: add
                 path: /spec/serviceName
                 value: stalwart-mailserver
+              - op: add
+                path: /spec/template/spec/volumes/-
+                value:
+                  name: mail-tls
+                  secret:
+                    secretName: stalwart-mail-tls
+                    optional: true
+              - op: add
+                path: /spec/template/spec/containers/0/volumeMounts/-
+                value:
+                  name: mail-tls
+                  mountPath: /opt/stalwart/etc/certs
+                  readOnly: true

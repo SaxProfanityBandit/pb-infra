@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hookshot-queue-redis
+  namespace: matrix
+  labels:
+    app: hookshot-queue-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hookshot-queue-redis
+  template:
+    metadata:
+      labels:
+        app: hookshot-queue-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          args:
+            - redis-server
+            - --save
+            - ""
+            - --appendonly
+            - "no"
+          ports:
+            - containerPort: 6379
+              name: redis
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hookshot-queue-redis
+  namespace: matrix
+spec:
+  selector:
+    app: hookshot-queue-redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis

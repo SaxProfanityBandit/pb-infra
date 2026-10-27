@@ -10,14 +10,15 @@ spec:
   entryPoints:
     - imap
   routes:
-    - match: HostSNI(`*`)
+    - match: HostSNI(`mail.sax.lgbt`)
       services:
         - name: stalwart-mailserver
-          port: imaptls
+          port: imap
   tls:
-    passthrough: true
+    certResolver: cert-resolver
+    domains:
+      - main: mail.sax.lgbt
 ---
-# Inbound SMTP (port 25): required for MX delivery (e.g. Gmail replies).
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRouteTCP
 metadata:
@@ -49,3 +50,23 @@ spec:
       services:
         - name: stalwart-mailserver
           port: submission
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: stalwart-submissions
+  namespace: mailserver
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - submissions
+  routes:
+    - match: HostSNI(`mail.sax.lgbt`)
+      services:
+        - name: stalwart-mailserver
+          port: submissions
+  tls:
+    certResolver: cert-resolver
+    domains:
+      - main: mail.sax.lgbt
