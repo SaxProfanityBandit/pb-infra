@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: site
+  namespace: rickardsahlgren
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rickardsahlgren-site
+  template:
+    metadata:
+      labels:
+        app: rickardsahlgren-site
+    spec:
+      containers:
+        - name: nginx
+          image: docker.io/library/nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: content
+              mountPath: /srv
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 512Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              ephemeral-storage: 256Mi
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: site-nginx
+        - name: content
+          persistentVolumeClaim:
+            claimName: site-content

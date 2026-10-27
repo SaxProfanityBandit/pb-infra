@@ -1,0 +1,23 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: rickardsahlgren-name
+  namespace: rickardsahlgren
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`rickardsahlgren.name`) || Host(`www.rickardsahlgren.name`)
+      services:
+        - name: site
+          kind: Service
+          port: http
+  tls:
+    certResolver: cert-resolver
+    domains:
+      - main: rickardsahlgren.name
+        sans:
+          - www.rickardsahlgren.name
