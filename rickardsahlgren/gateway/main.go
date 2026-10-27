@@ -33,7 +33,8 @@ func main() {
 	mux.HandleFunc("/access", func(w http.ResponseWriter, r *http.Request) {
 		handleAccess(w, r, secret)
 	})
-	mux.Handle("/cv/", gateStatic(secret, http.FileServer(http.Dir(privateCV)), "/cv/"))
+	cvFS := http.FileServer(http.Dir(privateCV))
+	mux.Handle("/cv/", gateStatic(secret, http.StripPrefix("/cv/", cvFS), "/cv/"))
 	mux.Handle("/", http.FileServer(http.Dir(publicRoot)))
 
 	s := &http.Server{
@@ -69,12 +70,9 @@ func gateStatic(secret string, fs http.Handler, prefix string) http.Handler {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
-		if r.URL.Path != prefix && !strings.HasPrefix(r.URL.Path, prefix) {
-			http.NotFound(w, r)
-			return
-		}
 		clean := filepath.Clean(r.URL.Path)
-		if !strings.HasPrefix(clean, prefix) {
+		prefixClean := filepath.Clean(prefix)
+		if clean != prefixClean && !strings.HasPrefix(clean, prefixClean+"/") {
 			http.NotFound(w, r)
 			return
 		}

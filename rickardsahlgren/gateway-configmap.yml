@@ -6,30 +6,29 @@ data:
     is not set\")\n\t}\n\tpublicRoot := envOr(\"PUBLIC_ROOT\", \"/srv/public\")\n\tprivateCV
     := envOr(\"PRIVATE_CV_ROOT\", \"/srv/private/cv\")\n\taddr := envOr(\"LISTEN\",
     \":8080\")\n\n\tmux := http.NewServeMux()\n\tmux.HandleFunc(\"/access\", func(w
-    http.ResponseWriter, r *http.Request) {\n\t\thandleAccess(w, r, secret)\n\t})\n\tmux.Handle(\"/cv/\",
-    gateStatic(secret, http.FileServer(http.Dir(privateCV)), \"/cv/\"))\n\tmux.Handle(\"/\",
-    http.FileServer(http.Dir(publicRoot)))\n\n\ts := &http.Server{\n\t\tAddr:              addr,\n\t\tHandler:
-    \          withRobots(mux),\n\t\tReadHeaderTimeout: 10 * time.Second,\n\t}\n\tlog.Printf(\"listening
-    on %s\", addr)\n\tlog.Fatal(s.ListenAndServe())\n}\n\nfunc envOr(key, def string)
-    string {\n\tif v := os.Getenv(key); v != \"\" {\n\t\treturn v\n\t}\n\treturn def\n}\n\nfunc
-    withRobots(next http.Handler) http.Handler {\n\treturn http.HandlerFunc(func(w
-    http.ResponseWriter, r *http.Request) {\n\t\tw.Header().Set(\"X-Robots-Tag\",
+    http.ResponseWriter, r *http.Request) {\n\t\thandleAccess(w, r, secret)\n\t})\n\tcvFS
+    := http.FileServer(http.Dir(privateCV))\n\tmux.Handle(\"/cv/\", gateStatic(secret,
+    http.StripPrefix(\"/cv/\", cvFS), \"/cv/\"))\n\tmux.Handle(\"/\", http.FileServer(http.Dir(publicRoot)))\n\n\ts
+    := &http.Server{\n\t\tAddr:              addr,\n\t\tHandler:           withRobots(mux),\n\t\tReadHeaderTimeout:
+    10 * time.Second,\n\t}\n\tlog.Printf(\"listening on %s\", addr)\n\tlog.Fatal(s.ListenAndServe())\n}\n\nfunc
+    envOr(key, def string) string {\n\tif v := os.Getenv(key); v != \"\" {\n\t\treturn
+    v\n\t}\n\treturn def\n}\n\nfunc withRobots(next http.Handler) http.Handler {\n\treturn
+    http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tw.Header().Set(\"X-Robots-Tag\",
     \"noindex, nofollow, nosnippet, noarchive\")\n\t\tnext.ServeHTTP(w, r)\n\t})\n}\n\nfunc
     gateStatic(secret string, fs http.Handler, prefix string) http.Handler {\n\treturn
     http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tif !strings.HasPrefix(r.URL.Path,
     prefix) {\n\t\t\thttp.NotFound(w, r)\n\t\t\treturn\n\t\t}\n\t\tif err := authorizeRequest(r,
-    secret); err != nil {\n\t\t\thttp.Error(w, \"Forbidden\", http.StatusForbidden)\n\t\t\treturn\n\t\t}\n\t\tif
-    r.URL.Path != prefix && !strings.HasPrefix(r.URL.Path, prefix) {\n\t\t\thttp.NotFound(w,
-    r)\n\t\t\treturn\n\t\t}\n\t\tclean := filepath.Clean(r.URL.Path)\n\t\tif !strings.HasPrefix(clean,
-    prefix) {\n\t\t\thttp.NotFound(w, r)\n\t\t\treturn\n\t\t}\n\t\tfs.ServeHTTP(w,
-    r)\n\t})\n}\n\nfunc handleAccess(w http.ResponseWriter, r *http.Request, secret
-    string) {\n\tif r.Method != http.MethodGet {\n\t\thttp.Error(w, \"Method Not Allowed\",
-    http.StatusMethodNotAllowed)\n\t\treturn\n\t}\n\texpStr := r.URL.Query().Get(\"exp\")\n\tsig
-    := r.URL.Query().Get(\"sig\")\n\texp, err := strconv.ParseInt(expStr, 10, 64)\n\tif
-    err != nil || expStr == \"\" || sig == \"\" {\n\t\thttp.Error(w, \"Bad Request\",
-    http.StatusBadRequest)\n\t\treturn\n\t}\n\tif time.Now().Unix() > exp {\n\t\thttp.Error(w,
-    \"Link expired\", http.StatusForbidden)\n\t\treturn\n\t}\n\tif !validSig(secret,
-    expStr, sig) {\n\t\thttp.Error(w, \"Forbidden\", http.StatusForbidden)\n\t\treturn\n\t}\n\tmaxAge
+    secret); err != nil {\n\t\t\thttp.Error(w, \"Forbidden\", http.StatusForbidden)\n\t\t\treturn\n\t\t}\n\t\tclean
+    := filepath.Clean(r.URL.Path)\n\t\tprefixClean := filepath.Clean(prefix)\n\t\tif
+    clean != prefixClean && !strings.HasPrefix(clean, prefixClean+\"/\") {\n\t\t\thttp.NotFound(w,
+    r)\n\t\t\treturn\n\t\t}\n\t\tfs.ServeHTTP(w, r)\n\t})\n}\n\nfunc handleAccess(w
+    http.ResponseWriter, r *http.Request, secret string) {\n\tif r.Method != http.MethodGet
+    {\n\t\thttp.Error(w, \"Method Not Allowed\", http.StatusMethodNotAllowed)\n\t\treturn\n\t}\n\texpStr
+    := r.URL.Query().Get(\"exp\")\n\tsig := r.URL.Query().Get(\"sig\")\n\texp, err
+    := strconv.ParseInt(expStr, 10, 64)\n\tif err != nil || expStr == \"\" || sig
+    == \"\" {\n\t\thttp.Error(w, \"Bad Request\", http.StatusBadRequest)\n\t\treturn\n\t}\n\tif
+    time.Now().Unix() > exp {\n\t\thttp.Error(w, \"Link expired\", http.StatusForbidden)\n\t\treturn\n\t}\n\tif
+    !validSig(secret, expStr, sig) {\n\t\thttp.Error(w, \"Forbidden\", http.StatusForbidden)\n\t\treturn\n\t}\n\tmaxAge
     := exp - time.Now().Unix()\n\tif maxAge < 1 {\n\t\thttp.Error(w, \"Link expired\",
     http.StatusForbidden)\n\t\treturn\n\t}\n\thttp.SetCookie(w, &http.Cookie{\n\t\tName:
     \    cookieName,\n\t\tValue:    expStr + \".\" + sig,\n\t\tPath:     cookiePath,\n\t\tMaxAge:
