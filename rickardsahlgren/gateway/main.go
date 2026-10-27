@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -54,6 +55,9 @@ func main() {
 	} else {
 		log.Print("Kutt CV access disabled (set KUTT_API_URL and KUTT_API_KEY)")
 	}
+	mux.HandleFunc("/cv/resume.pdf", func(w http.ResponseWriter, r *http.Request) {
+		handleCVPDF(w, r, secret, addr)
+	})
 	cvFS := http.FileServer(http.Dir(privateCV))
 	mux.Handle("/cv/", gateStatic(secret, http.StripPrefix("/cv/", cvFS), "/cv/"))
 	mux.Handle("/", http.FileServer(http.Dir(publicRoot)))
@@ -131,7 +135,7 @@ func gateStatic(secret string, fs http.Handler, prefix string) http.Handler {
 			http.NotFound(w, r)
 			return
 		}
-		if err := authorizeRequest(r, secret); err != nil {
+		if err := authorizeCV(r, secret); err != nil {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
@@ -225,6 +229,120 @@ func setGateCookie(w http.ResponseWriter, secret, expStr, sig string, exp int64)
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	})
+}
+
+func authorizeCV(r *http.Request, secret string) error {
+	if tok := r.URL.Query().Get("pdf_access"); tok != "" {
+		if validPDFAccess(secret, tok) {
+			return nil
+		}
+	}
+	return authorizeRequest(r, secret)
+}
+
+func validPDFAccess(secret, tok string) bool {
+	parts := strings.SplitN(tok, ".", 2)
+	if len(parts) != 2 {
+		return false
+	}
+	expStr, sig := parts[0], parts[1]
+	exp, err := strconv.ParseInt(expStr, 10, 64)
+	if err != nil {
+		return false
+	}
+	if time.Now().Unix() > exp {
+		return false
+	}
+	return validSig(secret, "pdf:"+expStr, sig)
+}
+
+func makePDFAccessToken(secret string, exp int64) string {
+	expStr := strconv.FormatInt(exp, 10)
+	return expStr + "." + sign(secret, "pdf:"+expStr)
+}
+
+func listenPort(addr string) string {
+	port := strings.TrimPrefix(addr, ":")
+	if port == "" {
+		return "8080"
+	}
+	return port
+}
+
+func chromiumBinary() string {
+	if p := os.Getenv("CHROMIUM_PATH"); p != "" {
+		if _, err := exec.LookPath(p); err == nil {
+			return p
+		}
+	}
+	for _, name := range []string{"chromium", "chromium-browser", "google-chrome-stable", "google-chrome"} {
+		if p, err := exec.LookPath(name); err == nil {
+			return p
+		}
+	}
+	return ""
+}
+
+func handleCVPDF(w http.ResponseWriter, r *http.Request, secret, listenAddr string) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if err := authorizeRequest(r, secret); err != nil {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+	chrome := chromiumBinary()
+	if chrome == "" {
+		http.Error(w, "PDF export unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	exp := time.Now().Add(2 * time.Minute).Unix()
+	tok := makePDFAccessToken(secret, exp)
+	port := listenPort(listenAddr)
+	pageURL := fmt.Sprintf("http://127.0.0.1:%s/cv/?pdf_access=%s", port, url.QueryEscape(tok))
+
+	tmp, err := os.CreateTemp("", "cv-resume-*.pdf")
+	if err != nil {
+		http.Error(w, "PDF failed", http.StatusInternalServerError)
+		return
+	}
+	tmpPath := tmp.Name()
+	_ = tmp.Close()
+	defer os.Remove(tmpPath)
+
+	ctx, cancel := context.WithTimeout(r.Context(), 90*time.Second)
+	defer cancel()
+
+	args := []string{
+		"--headless=new",
+		"--disable-gpu",
+		"--no-sandbox",
+		"--disable-dev-shm-usage",
+		"--run-all-compositor-stages-before-draw",
+		"--virtual-time-budget=15000",
+		"--print-to-pdf-no-header",
+		"--print-to-pdf=" + tmpPath,
+		pageURL,
+	}
+	cmd := exec.CommandContext(ctx, chrome, args...)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		log.Printf("chromium pdf: %v: %s", err, strings.TrimSpace(string(out)))
+		http.Error(w, "PDF failed", http.StatusInternalServerError)
+		return
+	}
+
+	data, err := os.ReadFile(tmpPath)
+	if err != nil || len(data) == 0 {
+		http.Error(w, "PDF failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", `attachment; filename="Rickard_Sahlgren_CV.pdf"`)
+	w.Header().Set("Cache-Control", "private, no-store")
+	_, _ = w.Write(data)
 }
 
 func authorizeRequest(r *http.Request, secret string) error {

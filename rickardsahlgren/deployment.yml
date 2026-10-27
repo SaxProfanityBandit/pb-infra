@@ -44,7 +44,17 @@ spec:
       containers:
         - name: gateway
           image: docker.io/library/alpine:3.20
-          command: ["/gateway/resume-gateway"]
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              if command -v chromium >/dev/null 2>&1 || command -v chromium-browser >/dev/null 2>&1; then
+                echo "chromium already present"
+              else
+                apk add --no-cache chromium nss freetype harfbuzz ca-certificates
+              fi
+              exec /gateway/resume-gateway
           ports:
             - name: http
               containerPort: 8080
@@ -63,7 +73,7 @@ spec:
             - name: SITE_PUBLIC_URL
               value: "https://rickardsahlgren.name"
             - name: KUTT_API_URL
-              value: "http://kutt.kutt.svc.cluster.local:3000"
+              value: "http://kutt.kutt.svc.cluster.local"
             - name: KUTT_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -78,13 +88,13 @@ spec:
               mountPath: /srv
           resources:
             limits:
-              cpu: 100m
-              memory: 128Mi
-              ephemeral-storage: 256Mi
+              cpu: "1"
+              memory: 768Mi
+              ephemeral-storage: 512Mi
             requests:
-              cpu: 50m
-              memory: 64Mi
-              ephemeral-storage: 128Mi
+              cpu: 100m
+              memory: 256Mi
+              ephemeral-storage: 256Mi
       volumes:
         - name: gateway-src
           configMap:
