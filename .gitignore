@@ -16,5 +16,6 @@ sftpgo/secret-db.yaml
 matrix/secret-db.yaml
 rickardsahlgren/secret-link-signing.yaml
 rickardsahlgren/secret-site-admin.yaml
+rickardsahlgren/secret-site-kutt-api.yaml
 kutt/secret-kutt.yaml
 vpn/wireguard-secret.local.yaml

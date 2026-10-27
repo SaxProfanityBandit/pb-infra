@@ -62,17 +62,13 @@ spec:
               value: ":8080"
             - name: SITE_PUBLIC_URL
               value: "https://rickardsahlgren.name"
-            - name: ADMIN_USER
+            - name: KUTT_API_URL
+              value: "http://kutt.kutt.svc.cluster.local:3000"
+            - name: KUTT_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: site-admin
-                  key: username
-                  optional: true
-            - name: ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: site-admin
-                  key: password
+                  name: site-kutt-api
+                  key: api_key
                   optional: true
           volumeMounts:
             - name: gateway-bin
