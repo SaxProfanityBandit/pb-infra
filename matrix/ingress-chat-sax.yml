@@ -17,6 +17,13 @@ spec:
           kind: Service
           port: 80
     - kind: Rule
+      match: Host(`chat.sax.lgbt`) && (PathPrefix(`/join`) || Path(`/join`))
+      priority: 90
+      services:
+        - name: chat-join-landing
+          kind: Service
+          port: http
+    - kind: Rule
       match: Host(`chat.sax.lgbt`)
       services:
         - name: synapse-matrix-synapse

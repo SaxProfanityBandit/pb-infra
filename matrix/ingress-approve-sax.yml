@@ -1,4 +1,3 @@
-# Matrix registration approve UI (handler runs on site gateway until split out).
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
@@ -11,7 +10,7 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`approve.sax.lgbt`) && PathPrefix(`/matrix/approve`)
+      match: Host(`approve.sax.lgbt`) && PathPrefix(`/matrix/`)
       services:
         - name: site
           namespace: rickardsahlgren

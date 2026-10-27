@@ -59,8 +59,7 @@ func main() {
 		handleCVPDF(w, r, secret, addr)
 	})
 	mux.Handle("/cv/", gateCV(secret, privateCV))
-	contact := loadContactConfig(secret)
-	if contact != nil {
+	if contact := loadContactConfig(); contact != nil {
 		mux.HandleFunc("/contact", handleContact(contact))
 		log.Print("Contact form enabled (POST /contact)")
 	} else {
@@ -68,9 +67,13 @@ func main() {
 	}
 	if ma := loadMatrixApproveConfig(baseURL); ma != nil {
 		mux.HandleFunc("/matrix/approve", handleMatrixApprove(secret, ma))
-		log.Print("Matrix approve links enabled (GET/POST /matrix/approve)")
+		log.Print("Matrix signed approve URLs (GET/POST /matrix/approve)")
+		if mrc := loadMatrixRequestConfig(secret, ma); mrc != nil {
+			mux.HandleFunc("/matrix/request", handleMatrixRequest(mrc))
+			log.Print("Matrix access requests (POST /matrix/request)")
+		}
 	} else {
-		log.Print("Matrix approve disabled (set SYNAPSE_ADMIN_ACCESS_TOKEN)")
+		log.Print("Matrix invite disabled (set SYNAPSE_ADMIN_ACCESS_TOKEN)")
 	}
 	mux.Handle("/", http.FileServer(http.Dir(publicRoot)))
 

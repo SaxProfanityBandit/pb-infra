@@ -28,7 +28,6 @@ spec:
     config:
       publicBaseurl: https://chat.sax.lgbt/
       reportStats: false
-      # Token-only signup; see pb-infra-docs matrix-registration-invites.md
       enableRegistration: true
       trustedKeyServers:
         - server_name: matrix.org
@@ -64,7 +63,6 @@ spec:
       registration_requires_token: true
       registrations_require_3pid:
         - email
-      # Set verify_emails: true via secret synapse-email when SMTP password is configured.
       verify_emails: false
       email:
         smtp_host: stalwart-mailserver.mailserver.svc.cluster.local
