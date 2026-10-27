@@ -70,6 +70,8 @@ spec:
               value: /srv/private/cv
             - name: LISTEN
               value: ":8080"
+            - name: GATEWAY_REV
+              value: "pdf-inline-2"
             - name: SITE_PUBLIC_URL
               value: "https://rickardsahlgren.name"
             - name: KUTT_API_URL

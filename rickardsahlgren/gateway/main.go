@@ -153,7 +153,7 @@ func gateCV(secret, privateCV string) http.Handler {
 			rel = "index.html"
 		}
 		if rel == "index.html" && r.URL.Query().Get("pdf_access") != "" {
-			serveCVPDFHTML(w, r, indexPath)
+			serveCVPDFHTML(w, r, indexPath, privateCV)
 			return
 		}
 
@@ -168,7 +168,7 @@ func pdfLang(r *http.Request) string {
 	return "sv"
 }
 
-func serveCVPDFHTML(w http.ResponseWriter, r *http.Request, indexPath string) {
+func serveCVPDFHTML(w http.ResponseWriter, r *http.Request, indexPath, privateCV string) {
 	raw, err := os.ReadFile(indexPath)
 	if err != nil {
 		http.NotFound(w, r)
@@ -177,17 +177,20 @@ func serveCVPDFHTML(w http.ResponseWriter, r *http.Request, indexPath string) {
 	lang := pdfLang(r)
 	html := string(raw)
 
-	printCSS := `<link rel="stylesheet" href="/cv/css/print.css">`
-	if i := strings.Index(html, "</head>"); i >= 0 {
-		html = html[:i] + printCSS + html[i:]
+	printCSSPath := filepath.Join(privateCV, "css", "print.css")
+	if css, err := os.ReadFile(printCSSPath); err == nil {
+		inline := "<style id=\"pdf-inline-print\">\n" + string(css) + "\n</style>"
+		if i := strings.Index(html, "</head>"); i >= 0 {
+			html = html[:i] + inline + html[i:]
+		}
 	}
 
 	langScript := fmt.Sprintf(
 		`<script>(function(){var lang=%q;document.documentElement.lang=lang;document.querySelectorAll(".lang-block").forEach(function(el){el.hidden=el.getAttribute("data-lang")!==lang;});})();</script>`,
 		lang,
 	)
-	if i := strings.Index(html, "<body>"); i >= 0 {
-		html = html[:i+len("<body>")] + langScript + html[i+len("<body>"):]
+	if i := strings.LastIndex(html, "</body>"); i >= 0 {
+		html = html[:i] + langScript + html[i:]
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -373,7 +376,7 @@ func handleCVPDF(w http.ResponseWriter, r *http.Request, secret, listenAddr stri
 		"--no-sandbox",
 		"--disable-dev-shm-usage",
 		"--run-all-compositor-stages-before-draw",
-		"--virtual-time-budget=20000",
+		"--virtual-time-budget=30000",
 		"--prefer-css-page-size",
 		"--no-pdf-header-footer",
 		"--print-to-pdf=" + tmpPath,
