@@ -1,0 +1,22 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kutt-links
+  namespace: kutt
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`links.rickardsahlgren.name`) || Host(`links.sax.lgbt`)
+      services:
+        - name: kutt
+          kind: Service
+          port: http
+  tls:
+    certResolver: cert-resolver
+    domains:
+      - main: links.rickardsahlgren.name
+      - main: links.sax.lgbt

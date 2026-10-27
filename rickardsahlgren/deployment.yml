@@ -5,6 +5,8 @@ metadata:
   namespace: rickardsahlgren
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: rickardsahlgren-site
@@ -58,6 +60,20 @@ spec:
               value: /srv/private/cv
             - name: LISTEN
               value: ":8080"
+            - name: SITE_PUBLIC_URL
+              value: "https://rickardsahlgren.name"
+            - name: ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: site-admin
+                  key: username
+                  optional: true
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: site-admin
+                  key: password
+                  optional: true
           volumeMounts:
             - name: gateway-bin
               mountPath: /gateway

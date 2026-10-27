@@ -3,7 +3,15 @@ kind: Kustomization
 resources:
   - namespace.yml
   - pvc.yml
-  - gateway-configmap.yml
   - deployment.yml
   - service.yml
   - ingress_site.yml
+
+configMapGenerator:
+  - name: site-gateway-src
+    namespace: rickardsahlgren
+    files:
+      - main.go=gateway/main.go
+
+generatorOptions:
+  disableNameSuffixHash: true
