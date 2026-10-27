@@ -90,9 +90,10 @@ spec:
                       value: "4"
                   resources:
                     requests:
-                      cpu: 500m
+                      cpu: 50m
                       memory: 128Mi
                     limits:
+                      cpu: 100m
                       memory: 1Gi
                   readinessProbe:
                     exec:
