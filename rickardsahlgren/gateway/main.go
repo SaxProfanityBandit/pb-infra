@@ -58,8 +58,7 @@ func main() {
 	mux.HandleFunc("/cv/resume.pdf", func(w http.ResponseWriter, r *http.Request) {
 		handleCVPDF(w, r, secret, addr)
 	})
-	cvFS := http.FileServer(http.Dir(privateCV))
-	mux.Handle("/cv/", gateStatic(secret, http.StripPrefix("/cv/", cvFS), "/cv/"))
+	mux.Handle("/cv/", gateCV(secret, privateCV))
 	mux.Handle("/", http.FileServer(http.Dir(publicRoot)))
 
 	s := &http.Server{
@@ -129,9 +128,12 @@ func withRobots(next http.Handler) http.Handler {
 	})
 }
 
-func gateStatic(secret string, fs http.Handler, prefix string) http.Handler {
+func gateCV(secret, privateCV string) http.Handler {
+	inner := http.StripPrefix("/cv/", http.FileServer(http.Dir(privateCV)))
+	indexPath := filepath.Join(privateCV, "index.html")
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasPrefix(r.URL.Path, prefix) {
+		if !strings.HasPrefix(r.URL.Path, "/cv/") && r.URL.Path != "/cv" {
 			http.NotFound(w, r)
 			return
 		}
@@ -140,13 +142,57 @@ func gateStatic(secret string, fs http.Handler, prefix string) http.Handler {
 			return
 		}
 		clean := filepath.Clean(r.URL.Path)
-		prefixClean := filepath.Clean(prefix)
-		if clean != prefixClean && !strings.HasPrefix(clean, prefixClean+"/") {
+		if clean != "/cv" && clean != "/cv/" && !strings.HasPrefix(clean, "/cv/") {
 			http.NotFound(w, r)
 			return
 		}
-		fs.ServeHTTP(w, r)
+
+		rel := strings.TrimPrefix(r.URL.Path, "/cv/")
+		rel = strings.Trim(rel, "/")
+		if rel == "" {
+			rel = "index.html"
+		}
+		if rel == "index.html" && r.URL.Query().Get("pdf_access") != "" {
+			serveCVPDFHTML(w, r, indexPath)
+			return
+		}
+
+		inner.ServeHTTP(w, r)
 	})
+}
+
+func pdfLang(r *http.Request) string {
+	if r.URL.Query().Get("lang") == "en" {
+		return "en"
+	}
+	return "sv"
+}
+
+func serveCVPDFHTML(w http.ResponseWriter, r *http.Request, indexPath string) {
+	raw, err := os.ReadFile(indexPath)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	lang := pdfLang(r)
+	html := string(raw)
+
+	printCSS := `<link rel="stylesheet" href="/cv/css/print.css">`
+	if i := strings.Index(html, "</head>"); i >= 0 {
+		html = html[:i] + printCSS + html[i:]
+	}
+
+	langScript := fmt.Sprintf(
+		`<script>(function(){var lang=%q;document.documentElement.lang=lang;document.querySelectorAll(".lang-block").forEach(function(el){el.hidden=el.getAttribute("data-lang")!==lang;});})();</script>`,
+		lang,
+	)
+	if i := strings.Index(html, "<body>"); i >= 0 {
+		html = html[:i+len("<body>")] + langScript + html[i+len("<body>"):]
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "private, no-store")
+	_, _ = w.Write([]byte(html))
 }
 
 func handleAccess(w http.ResponseWriter, r *http.Request, secret string) {
@@ -301,7 +347,13 @@ func handleCVPDF(w http.ResponseWriter, r *http.Request, secret, listenAddr stri
 	exp := time.Now().Add(2 * time.Minute).Unix()
 	tok := makePDFAccessToken(secret, exp)
 	port := listenPort(listenAddr)
-	pageURL := fmt.Sprintf("http://127.0.0.1:%s/cv/?pdf_access=%s", port, url.QueryEscape(tok))
+	lang := pdfLang(r)
+	pageURL := fmt.Sprintf(
+		"http://127.0.0.1:%s/cv/?pdf_access=%s&lang=%s",
+		port,
+		url.QueryEscape(tok),
+		url.QueryEscape(lang),
+	)
 
 	tmp, err := os.CreateTemp("", "cv-resume-*.pdf")
 	if err != nil {
