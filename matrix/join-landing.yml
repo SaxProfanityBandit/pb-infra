@@ -75,7 +75,7 @@ data:
     <body>
       <div id="intro">
         <h1>Register on chat.sax.lgbt</h1>
-        <p class="muted">Registration on <strong>chat.sax.lgbt</strong> is token-only. You need the invite short link to open this page; each request is approved manually before a token is issued.</p>
+        <p class="muted">Registration on <strong>chat.sax.lgbt</strong> is token-only. Open the invite link you were sent on <strong>links.sax.lgbt</strong> (it redirects here); each request is approved manually before a token is issued.</p>
       </div>
 
       <div id="request">

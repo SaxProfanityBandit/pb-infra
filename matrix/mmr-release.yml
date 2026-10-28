@@ -1,0 +1,85 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: mmr
+  namespace: matrix
+spec:
+  interval: 10m
+  timeout: 20m
+  dependsOn:
+    - name: pg
+      namespace: matrix
+  chart:
+    spec:
+      chart: matrix-media-repo
+      version: "3.1.0"
+      sourceRef:
+        kind: HelmRepository
+        name: ananace
+        namespace: matrix
+  valuesFrom:
+    - kind: Secret
+      name: mmr-config
+      valuesKey: values.yaml
+  values:
+    fullnameOverride: mmr
+    replicaCount: 1
+    image:
+      repository: ghcr.io/t2bot/matrix-media-repo
+      tag: v1.3.8
+      pullPolicy: IfNotPresent
+    persistence:
+      enabled: false
+    postgresql:
+      enabled: false
+    externalPostgresql:
+      host: pg-postgresql.matrix.svc.cluster.local
+      port: 5432
+      username: mmr
+      database: mmr
+      sslMode: disable
+    redis:
+      enabled: false
+    extraRepo:
+      useForwardedHost: true
+    homeservers:
+      chat.sax.lgbt:
+        csApi: http://synapse-matrix-synapse.matrix.svc.cluster.local:8008/
+        adminApiKind: synapse
+        signingKeyPath: /synapse-signing/signing.key
+    extraVolumes:
+      - name: synapse-signing
+        secret:
+          secretName: synapse-signingkey
+    extraVolumeMounts:
+      - name: synapse-signing
+        mountPath: /synapse-signing
+        readOnly: true
+    service:
+      type: ClusterIP
+      port: 8000
+    ingress:
+      enabled: false
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 384Mi
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: mmr
+            patch: |
+              - op: add
+                path: /spec/template/spec/hostAliases
+                value:
+                  - ip: 10.255.132.92
+                    hostnames:
+                      - rgw.ctrl-c.liu.se
+                      - sax-stack-media.rgw.ctrl-c.liu.se

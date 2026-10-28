@@ -10,6 +10,13 @@ spec:
     - websecure
   routes:
     - kind: Rule
+      match: Host(`chat.sax.lgbt`) && (PathPrefix(`/_matrix/media`) || PathPrefix(`/_matrix/client/v1/media`) || PathPrefix(`/_matrix/federation/v1/media`))
+      priority: 110
+      services:
+        - name: mmr
+          kind: Service
+          port: 8000
+    - kind: Rule
       match: Host(`chat.sax.lgbt`) && PathPrefix(`/.well-known/`)
       priority: 100
       services:

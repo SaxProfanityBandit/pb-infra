@@ -20,5 +20,6 @@ rickardsahlgren/secret-site-admin.yaml
 rickardsahlgren/secret-site-kutt-api.yaml
 rickardsahlgren/secret-site-contact.yaml
 matrix/secret-registration-gateway.yaml
+matrix/secret-mmr-config.yaml
 kutt/secret-kutt.yaml
 vpn/wireguard-secret.local.yaml

@@ -6,6 +6,7 @@ resources:
   - hookshot-repository.yml
   - postgresql-release.yml
   - release.yml
+  - mmr-release.yml
   - ingress-chat-sax.yml
   - hookshot-release.yml
   - hookshot-crypto-pvc.yml

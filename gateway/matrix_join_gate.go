@@ -11,7 +11,8 @@ import (
 
 const (
 	joinGateCookieName = "matrix_join_gate"
-	joinGateCookiePath = "/join"
+	// Path / so POST /matrix/request and /matrix/request/status receive the gate cookie after /join/via/kutt/.
+	joinGateCookiePath = "/"
 )
 
 func joinViaKuttTarget(slug string) string {
