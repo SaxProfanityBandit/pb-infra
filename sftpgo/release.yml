@@ -70,3 +70,19 @@ spec:
           secretKeyRef:
             name: sftpgo-db
             key: password
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: sftpgo
+            patch: |
+              - op: add
+                path: /spec/template/spec/hostAliases
+                value:
+                  - ip: 10.255.132.92
+                    hostnames:
+                      - rgw.ctrl-c.liu.se
+                      - foundryvtt-data.rgw.ctrl-c.liu.se

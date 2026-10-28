@@ -10,6 +10,7 @@ foundryvtt/secret-foundryvtt-s3.yml
 foundry-sftp-backup
 foundry-sftp-backup.pub
 sftpgo/secret-db.yaml
+cdn/secret-rgw.yaml
 matrix/secret-db.yaml
 matrix/secret-synapse-email.yaml
 matrix/secret-hookshot.yaml
