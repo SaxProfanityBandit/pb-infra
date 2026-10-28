@@ -17,15 +17,7 @@ spec:
           kind: Service
           port: 80
     - kind: Rule
-      match: Host(`chat.sax.lgbt`) && PathPrefix(`/matrix/request`)
-      priority: 95
-      services:
-        - name: site
-          namespace: rickardsahlgren
-          kind: Service
-          port: http
-    - kind: Rule
-      match: Host(`chat.sax.lgbt`) && (PathPrefix(`/join`) || Path(`/join`))
+      match: Host(`chat.sax.lgbt`) && (PathPrefix(`/join`) || PathPrefix(`/matrix/request`))
       priority: 90
       services:
         - name: chat-join-landing
