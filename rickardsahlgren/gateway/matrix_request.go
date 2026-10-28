@@ -134,7 +134,7 @@ func handleMatrixRequest(cfg *matrixRequestConfig) http.HandlerFunc {
 		}
 		fmt.Fprintf(&body, "\nApprove URL:\n%s\n", approveURL)
 
-		if err := sendSTARTTLS(cfg.smtpHost, cfg.smtpUser, cfg.smtpPass, cfg.mailFrom, []string{cfg.mailTo}, plainEmail(cfg.mailFrom, cfg.mailTo, subject, body)); err != nil {
+		if err := sendSTARTTLS(cfg.smtpHost, cfg.smtpUser, cfg.smtpPass, cfg.mailFrom, []string{cfg.mailTo}, plainEmail(cfg.mailFrom, cfg.mailTo, subject, body.String())); err != nil {
 			log.Printf("matrix request smtp: %v", err)
 			http.Error(w, "Could not send request", http.StatusBadGateway)
 			return
