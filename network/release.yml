@@ -113,3 +113,17 @@ spec:
       spec:
         loadBalancerIP: 130.236.253.195
         allocateLoadBalancerNodePorts: false
+  postRenderers:
+    - kustomize:
+        patches:
+          # Chart renders rollingUpdate alongside Recreate; API rejects that patch.
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: traefik
+            patch: |
+              - op: replace
+                path: /spec/strategy
+                value:
+                  type: Recreate
