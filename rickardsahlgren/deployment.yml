@@ -34,11 +34,11 @@ spec:
               mountPath: /gateway
           resources:
             limits:
-              cpu: 500m
+              cpu: 200m
               memory: 512Mi
               ephemeral-storage: 512Mi
             requests:
-              cpu: 100m
+              cpu: 50m
               memory: 256Mi
               ephemeral-storage: 256Mi
       containers:
@@ -120,11 +120,11 @@ spec:
               mountPath: /srv
           resources:
             limits:
-              cpu: "1"
+              cpu: 400m
               memory: 768Mi
               ephemeral-storage: 512Mi
             requests:
-              cpu: 100m
+              cpu: 50m
               memory: 256Mi
               ephemeral-storage: 256Mi
       volumes:
