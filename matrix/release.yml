@@ -45,6 +45,13 @@ spec:
       existingSecretPasswordKey: password
     redis:
       enabled: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 150m
+          memory: 256Mi
     persistence:
       enabled: true
       accessMode: ReadWriteOnce
@@ -59,6 +66,13 @@ spec:
           base_url: https://chat.sax.lgbt
       server:
         m.server: chat.sax.lgbt:443
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 50m
+          memory: 64Mi
     extraConfig:
       registration_requires_token: true
       registrations_require_3pid:

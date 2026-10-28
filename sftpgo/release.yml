@@ -55,6 +55,13 @@ spec:
         port: 5432
         username: sftpgo
         users_base_dir: /var/lib/sftpgo/users
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
     envVars:
       - name: SFTPGO_HTTPD__BINDINGS__0__BASE_URL
         value: https://files.sax.lgbt

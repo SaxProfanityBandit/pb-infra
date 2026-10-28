@@ -26,6 +26,13 @@ spec:
     ingress:
       webhook:
         enabled: false
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
   postRenderers:
     - kustomize:
         patches:
