@@ -18,6 +18,7 @@ configMapGenerator:
       - contact.go=gateway/contact.go
       - util.go=gateway/util.go
       - signing.go=gateway/signing.go
+      - kutt.go=gateway/kutt.go
   - name: matrix-gateway-src
     namespace: matrix
     files:
@@ -25,6 +26,8 @@ configMapGenerator:
       - contact.go=gateway/contact.go
       - util.go=gateway/util.go
       - signing.go=gateway/signing.go
+      - kutt.go=gateway/kutt.go
+      - matrix_join_gate.go=gateway/matrix_join_gate.go
       - matrix_approve.go=gateway/matrix_approve.go
       - matrix_request.go=gateway/matrix_request.go
       - matrix_request_store.go=gateway/matrix_request_store.go

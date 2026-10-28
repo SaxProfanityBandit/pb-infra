@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -27,6 +28,14 @@ func main() {
 	}
 	mux.HandleFunc("/matrix/request", handleMatrixRequest(mrc))
 	mux.HandleFunc("/matrix/request/status", handleMatrixRequestStatus(mrc))
+	kuttURL := strings.TrimRight(os.Getenv("KUTT_API_URL"), "/")
+	kuttKey := os.Getenv("KUTT_API_KEY")
+	if kuttURL != "" && kuttKey != "" {
+		kutt := &kuttClient{base: kuttURL, apiKey: kuttKey, http: http.DefaultClient}
+		registerJoinKuttRoutes(mux, secret, kutt)
+	} else {
+		log.Print("Matrix join Kutt gate disabled (set KUTT_API_URL and KUTT_API_KEY)")
+	}
 	mux.Handle("/", http.FileServer(http.Dir(publicRoot)))
 
 	s := &http.Server{

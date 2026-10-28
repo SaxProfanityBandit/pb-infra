@@ -6,7 +6,7 @@ metadata:
 data:
   index.html: |
     <!DOCTYPE html><html><head><meta charset="utf-8"><title>chat.sax.lgbt registration</title></head>
-    <body><p>Matrix registration API. Use <a href="https://chat.sax.lgbt/join">chat.sax.lgbt/join</a>.</p></body></html>
+    <body><p>Matrix registration API. Open the invite short link you received to reach the join page.</p></body></html>
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -16,7 +16,10 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: registration-gateway
@@ -104,6 +107,14 @@ spec:
                 secretKeyRef:
                   name: registration-gateway
                   key: hookshot_webhook_internal_url
+                  optional: true
+            - name: KUTT_API_URL
+              value: "http://kutt.kutt.svc.cluster.local"
+            - name: KUTT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: registration-gateway
+                  key: kutt_api_key
                   optional: true
           volumeMounts:
             - name: gateway-bin

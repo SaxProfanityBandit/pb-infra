@@ -85,6 +85,9 @@ func handleMatrixRequest(cfg *matrixRequestConfig) http.HandlerFunc {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
+		if !requireJoinGate(w, r, cfg.signSecret) {
+			return
+		}
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, "Bad form", http.StatusBadRequest)
 			return
@@ -149,8 +152,27 @@ func handleMatrixRequest(cfg *matrixRequestConfig) http.HandlerFunc {
 		if email != "" {
 			q.Set("mail", "1")
 		}
-		http.Redirect(w, r, joinPublicBase()+"?"+q.Encode(), http.StatusSeeOther)
+		joinURL := joinPublicBase() + "?" + q.Encode()
+		if acceptsJSON(r) {
+			w.Header().Set("Cache-Control", "no-store")
+			w.Header().Set("Content-Type", "application/json")
+			out := map[string]string{"status": "pending", "rid": rid, "wsig": wsig, "join_url": joinURL}
+			if email != "" {
+				out["mail"] = "1"
+			}
+			_ = json.NewEncoder(w).Encode(out)
+			return
+		}
+		http.Redirect(w, r, joinURL, http.StatusSeeOther)
 	}
+}
+
+func acceptsJSON(r *http.Request) bool {
+	if r.Header.Get("X-Requested-With") == "fetch" {
+		return true
+	}
+	accept := r.Header.Get("Accept")
+	return strings.Contains(accept, "application/json")
 }
 
 func handleMatrixRequestStatus(cfg *matrixRequestConfig) http.HandlerFunc {
@@ -173,19 +195,20 @@ func handleMatrixRequestStatus(cfg *matrixRequestConfig) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		pr, ok := getPendingRequest(rid)
 		if !ok {
-			_ = json.NewEncoder(w).Encode(map[string]string{"status": "expired"})
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "expired", "rid": rid})
 			return
 		}
 		if !pr.Ready || pr.Token == "" {
-			_ = json.NewEncoder(w).Encode(map[string]string{"status": "pending"})
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "pending", "rid": rid})
 			return
 		}
 		_ = json.NewEncoder(w).Encode(map[string]string{
-			"status":      "ready",
-			"token":       pr.Token,
-			"user":        pr.Localpart,
-			"server":      cfg.serverName,
-			"homeserver":  homeserverPublicURL(),
+			"status":     "ready",
+			"rid":        rid,
+			"token":      pr.Token,
+			"user":       pr.Localpart,
+			"server":     cfg.serverName,
+			"homeserver": homeserverPublicURL(),
 		})
 	}
 }

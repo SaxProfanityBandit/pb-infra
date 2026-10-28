@@ -24,6 +24,13 @@ spec:
           kind: Service
           port: http
     - kind: Rule
+      match: Host(`chat.sax.lgbt`) && PathPrefix(`/join/via/kutt/`)
+      priority: 94
+      services:
+        - name: registration-gateway
+          kind: Service
+          port: http
+    - kind: Rule
       match: Host(`chat.sax.lgbt`) && (PathPrefix(`/join`) || Path(`/join`))
       priority: 90
       services:

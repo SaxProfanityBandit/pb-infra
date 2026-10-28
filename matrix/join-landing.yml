@@ -7,9 +7,24 @@ data:
   default.conf: |
     server {
       listen 80;
+      location = /join/gate {
+        internal;
+        proxy_pass http://registration-gateway.matrix.svc.cluster.local/join/gate;
+        proxy_pass_request_body off;
+        proxy_set_header Content-Length "";
+        proxy_set_header X-Original-URI $request_uri;
+      }
+
       location /join {
+        auth_request /join/gate;
+        error_page 403 = @join_forbidden;
         rewrite ^ /index.html break;
         root /usr/share/nginx/html;
+      }
+
+      location @join_forbidden {
+        default_type text/html;
+        return 403 '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>chat.sax.lgbt</title></head><body style="font-family:system-ui,sans-serif;max-width:28rem;margin:2rem auto;padding:0 1rem;line-height:1.5"><h1>Invite link required</h1><p>Registration on <strong>chat.sax.lgbt</strong> is not open at this URL. Use the short link you were given (it redirects here after a check).</p><p>If you lost the link, contact the person who invited you.</p></body></html>';
       }
     }
   index.html: |
@@ -30,7 +45,12 @@ data:
         .err{color:var(--err)}
         .ok{color:var(--ok)}
         .box{background:var(--bg);padding:1rem;border-radius:6px;margin:1rem 0}
-        #wait[hidden],#wait-mail[hidden],#invite[hidden],#request[hidden]{display:none!important}
+        #waiting[hidden],#invite[hidden],#request[hidden],#intro[hidden]{display:none!important}
+        .wait-panel{text-align:center;padding:2rem 1rem;margin:1.5rem 0;background:var(--bg);border-radius:8px}
+        .wait-panel .spin{width:2rem;height:2rem;border-width:3px;margin:0 auto 1rem;display:block}
+        .wait-panel h2{font-size:1.15rem;margin:0 0 .75rem;font-weight:600}
+        .wait-tick{font-size:.85rem;color:var(--muted);margin-top:1rem;min-height:1.25rem}
+        button:disabled{opacity:.6;cursor:not-allowed}
         .client-intro{margin:1rem 0 .5rem;font-size:.9rem}
         .client-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.5rem;margin:.75rem 0 1.25rem}
         .client-card{display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.65rem .4rem;border:1px solid #ddd;border-radius:8px;background:#fff;color:inherit;text-decoration:none;font-size:.8rem;text-align:center;transition:border-color .15s,box-shadow .15s}
@@ -53,34 +73,33 @@ data:
       </style>
     </head>
     <body>
-      <h1>Register on chat.sax.lgbt</h1>
-      <p class="muted">Registration on <strong>chat.sax.lgbt</strong> is token-only. Each request is approved manually before a token is issued.</p>
+      <div id="intro">
+        <h1>Register on chat.sax.lgbt</h1>
+        <p class="muted">Registration on <strong>chat.sax.lgbt</strong> is token-only. You need the invite short link to open this page; each request is approved manually before a token is issued.</p>
+      </div>
 
       <div id="request">
         <h2>Request a token</h2>
         <p class="muted">Choose a username (letters, numbers, <code>.</code> <code>_</code> <code>=</code> <code>-</code> <code>/</code> only). This page shows the token once the request is approved.</p>
         <p class="muted">Matrix ID: <span class="mxid" id="mxid-preview">@…:chat.sax.lgbt</span></p>
-        <form action="/matrix/request" method="post">
+        <form id="req-form" action="/matrix/request" method="post">
           <label>Username</label>
           <input name="username" id="req-user" required pattern="[a-z0-9._=\\-/]+" autocomplete="username">
           <label>Email <span class="muted">(optional)</span></label>
-          <input name="email" type="email" autocomplete="email">
+          <input name="email" id="req-email" type="email" autocomplete="email">
           <label>Display name <span class="muted">(optional)</span></label>
           <input name="display_name" autocomplete="name">
           <label class="hp" aria-hidden="true"><input type="text" name="_hp" tabindex="-1" autocomplete="off"></label>
-          <button type="submit">Send request</button>
+          <p id="form-err" class="err" hidden></p>
+          <button type="submit" id="req-submit">Send request</button>
         </form>
       </div>
 
-      <div id="wait" hidden>
-        <p><span class="spin"></span> Pending approval</p>
-        <p class="muted">Keep this tab open to get the token here when the request is approved.</p>
-      </div>
-
-      <div id="wait-mail" hidden>
-        <p><strong>Pending approval</strong></p>
-        <p>You entered an email address. You can close this tab.</p>
-        <p class="muted">After approval, the token and join link go to that address (check spam). If this tab stays open, the token also appears below.</p>
+      <div id="waiting" hidden class="wait-panel" aria-live="polite" data-rid="">
+        <span class="spin" aria-hidden="true"></span>
+        <h2 id="waiting-title">Waiting for approval</h2>
+        <p id="waiting-hint" class="muted"></p>
+        <p class="wait-tick" id="waiting-tick"></p>
       </div>
 
       <div id="invite" hidden class="box">
@@ -137,7 +156,44 @@ data:
       var HS = "https://chat.sax.lgbt";
       var params = new URLSearchParams(location.search);
       var reqUser = document.getElementById("req-user");
+      var reqForm = document.getElementById("req-form");
+      var reqSubmit = document.getElementById("req-submit");
+      var formErr = document.getElementById("form-err");
       var preview = document.getElementById("mxid-preview");
+      var waitingEl = document.getElementById("waiting");
+      var pollTimer = null;
+      /** @type {{ rid: string, wsig: string, gen: number } | null} */
+      var pollSession = null;
+      var SS_KEY = "matrix_join_wait_v1";
+
+      function stopPolling() {
+        if (pollTimer) {
+          clearTimeout(pollTimer);
+          pollTimer = null;
+        }
+        pollSession = null;
+      }
+
+      function saveWaitSession(rid, wsig, hasEmail) {
+        try {
+          sessionStorage.setItem(SS_KEY, JSON.stringify({ rid: rid, wsig: wsig, mail: !!hasEmail }));
+        } catch (e) {}
+      }
+
+      function clearWaitSession() {
+        try {
+          sessionStorage.removeItem(SS_KEY);
+        } catch (e) {}
+      }
+
+      function sessionMatches(rid, wsig) {
+        return pollSession && pollSession.rid === rid && pollSession.wsig === wsig;
+      }
+
+      function responseMatchesSession(d, rid) {
+        return d && (!d.rid || d.rid === rid);
+      }
+
       function updPreview() {
         var u = (reqUser.value || "…").toLowerCase().replace(/[^a-z0-9._=\\-/]/g, "");
         preview.textContent = "@" + (u || "…") + ":chat.sax.lgbt";
@@ -146,9 +202,9 @@ data:
       updPreview();
 
       function showInvite(token, user, server) {
+        document.getElementById("intro").hidden = true;
         document.getElementById("request").hidden = true;
-        document.getElementById("wait").hidden = true;
-        document.getElementById("wait-mail").hidden = true;
+        document.getElementById("waiting").hidden = true;
         document.getElementById("invite").hidden = false;
         document.getElementById("invite-token").value = token;
         document.getElementById("invite-mxid").textContent = "@" + user + ":" + (server || "chat.sax.lgbt");
@@ -162,40 +218,175 @@ data:
         };
       }
 
+      function waitingHint(hasEmail) {
+        if (hasEmail) {
+          return "You added an email. You do not need to keep this tab open — after approval, the token and join link go to that address (check spam). If you leave this page open, the token will also show up here.";
+        }
+        return "Keep this tab open. When your request is approved, your registration token will appear on this page automatically.";
+      }
+
+      function showSending() {
+        document.getElementById("intro").hidden = true;
+        document.getElementById("request").hidden = true;
+        waitingEl.hidden = false;
+        waitingEl.dataset.rid = "";
+        document.getElementById("waiting-title").textContent = "Sending request…";
+        document.getElementById("waiting-hint").textContent = "One moment.";
+        document.getElementById("waiting-tick").textContent = "";
+      }
+
+      function showWaiting(rid, hasEmail) {
+        document.getElementById("intro").hidden = true;
+        document.getElementById("request").hidden = true;
+        waitingEl.hidden = false;
+        waitingEl.dataset.rid = rid;
+        document.getElementById("waiting-title").textContent = "Waiting for approval";
+        document.getElementById("waiting-hint").textContent = waitingHint(hasEmail);
+        document.getElementById("waiting-tick").textContent = "Checking for approval…";
+      }
+
+      function resetToForm() {
+        stopPolling();
+        clearWaitSession();
+        waitingEl.hidden = true;
+        waitingEl.dataset.rid = "";
+        document.getElementById("intro").hidden = false;
+        document.getElementById("request").hidden = false;
+      }
+
+      function showFormError(msg) {
+        formErr.textContent = msg;
+        formErr.hidden = false;
+        reqSubmit.disabled = false;
+        reqSubmit.textContent = "Send request";
+      }
+
+      function startPolling(rid, wsig, hasEmail) {
+        stopPolling();
+        var gen = Date.now();
+        pollSession = { rid: rid, wsig: wsig, gen: gen };
+        saveWaitSession(rid, wsig, hasEmail);
+        showWaiting(rid, hasEmail);
+        function poll() {
+          if (!sessionMatches(rid, wsig) || pollSession.gen !== gen) {
+            return;
+          }
+          fetch("/matrix/request/status?rid=" + encodeURIComponent(rid) + "&wsig=" + encodeURIComponent(wsig), {
+            credentials: "same-origin",
+            headers: { Accept: "application/json" }
+          })
+            .then(function (r) {
+              if (!sessionMatches(rid, wsig) || pollSession.gen !== gen) {
+                return null;
+              }
+              if (!r.ok) {
+                throw new Error(r.status === 403 ? "This wait link is invalid or expired. Submit the form again." : "Could not check status (" + r.status + ").");
+              }
+              return r.json();
+            })
+            .then(function (d) {
+              if (!d || !sessionMatches(rid, wsig) || pollSession.gen !== gen) {
+                return;
+              }
+              if (!responseMatchesSession(d, rid)) {
+                return;
+              }
+              if (d.status === "ready") {
+                clearWaitSession();
+                stopPolling();
+                showInvite(d.token, d.user, d.server || d.homeserver);
+                return;
+              }
+              if (d.status === "expired") {
+                resetToForm();
+                showFormError("This request expired or was lost (for example after a server restart). Please submit again.");
+                return;
+              }
+              if (waitingEl.dataset.rid !== rid) {
+                return;
+              }
+              var t = new Date();
+              document.getElementById("waiting-tick").textContent =
+                "Still waiting… last checked " + t.toLocaleTimeString() + ".";
+              pollTimer = setTimeout(poll, 3000);
+            })
+            .catch(function (err) {
+              if (!sessionMatches(rid, wsig) || pollSession.gen !== gen) {
+                return;
+              }
+              document.getElementById("waiting-tick").textContent = err.message || "Connection problem; retrying…";
+              pollTimer = setTimeout(poll, 5000);
+            });
+        }
+        poll();
+      }
+
+      reqForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        formErr.hidden = true;
+        stopPolling();
+        clearWaitSession();
+        var hasEmail = document.getElementById("req-email").value.trim() !== "";
+        showSending();
+        reqSubmit.disabled = true;
+        reqSubmit.textContent = "Sending…";
+        fetch("/matrix/request", {
+          method: "POST",
+          body: new FormData(reqForm),
+          credentials: "same-origin",
+          headers: { Accept: "application/json", "X-Requested-With": "fetch" }
+        })
+          .then(function (res) {
+            if (!res.ok) {
+              return res.text().then(function (t) {
+                throw new Error(t && t.length < 200 ? t : "Request failed (" + res.status + ").");
+              });
+            }
+            return res.json();
+          })
+          .then(function (d) {
+            var rid = d.rid;
+            var wsig = d.wsig;
+            if (!rid || !wsig) {
+              throw new Error("Unexpected response from server.");
+            }
+            var q = "rid=" + encodeURIComponent(rid) + "&wsig=" + encodeURIComponent(wsig);
+            if (d.mail === "1") {
+              q += "&mail=1";
+            }
+            history.replaceState(null, "", "/join?" + q);
+            startPolling(rid, wsig, hasEmail || d.mail === "1");
+          })
+          .catch(function (err) {
+            resetToForm();
+            showFormError(err.message || "Could not send request.");
+          });
+      });
+
       var token = params.get("token");
       var user = params.get("user");
       if (token) {
+        stopPolling();
+        clearWaitSession();
         showInvite(token, user || "…", "chat.sax.lgbt");
         return;
       }
 
       var rid = params.get("rid");
       var wsig = params.get("wsig");
-      var mailed = params.get("mail") === "1";
       if (rid && wsig) {
-        document.getElementById("request").hidden = true;
-        if (mailed) {
-          document.getElementById("wait-mail").hidden = false;
-        } else {
-          document.getElementById("wait").hidden = false;
-        }
-        function poll() {
-          fetch("/matrix/request/status?rid=" + encodeURIComponent(rid) + "&wsig=" + encodeURIComponent(wsig))
-            .then(function (r) { return r.json(); })
-            .then(function (d) {
-              if (d.status === "ready") {
-                showInvite(d.token, d.user, d.server);
-                return;
-              }
-              if (d.status === "expired") {
-                document.getElementById("wait").innerHTML = "<p class=\"err\">This request expired after 7 days. Submit the form again.</p>";
-                return;
-              }
-              setTimeout(poll, 3000);
-            })
-            .catch(function () { setTimeout(poll, 5000); });
-        }
-        poll();
+        var hasMail = params.get("mail") === "1";
+        try {
+          var stored = JSON.parse(sessionStorage.getItem(SS_KEY) || "null");
+          if (stored && stored.rid && stored.rid !== rid) {
+            clearWaitSession();
+          } else if (stored && stored.rid === rid && stored.mail) {
+            hasMail = true;
+          }
+        } catch (e) {}
+        startPolling(rid, wsig, hasMail);
+      } else {
+        clearWaitSession();
       }
     })();
       </script>
