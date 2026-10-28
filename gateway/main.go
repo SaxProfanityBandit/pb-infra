@@ -65,17 +65,6 @@ func main() {
 	} else {
 		log.Print("Contact form disabled (set CONTACT_SMTP_USER and secret)")
 	}
-	if ma := loadMatrixApproveConfig(baseURL); ma != nil {
-		mux.HandleFunc("/matrix/approve", handleMatrixApprove(secret, ma))
-		log.Print("Matrix signed approve URLs (GET/POST /matrix/approve)")
-		if mrc := loadMatrixRequestConfig(secret, ma); mrc != nil {
-			mux.HandleFunc("/matrix/request", handleMatrixRequest(mrc))
-			mux.HandleFunc("/matrix/request/status", handleMatrixRequestStatus(mrc))
-			log.Print("Matrix access requests (POST /matrix/request, GET /matrix/request/status)")
-		}
-	} else {
-		log.Print("Matrix invite disabled (set SYNAPSE_ADMIN_ACCESS_TOKEN)")
-	}
 	mux.Handle("/", http.FileServer(http.Dir(publicRoot)))
 
 	s := &http.Server{
@@ -129,20 +118,6 @@ func (c *kuttClient) linkByAddress(ctx context.Context, address string) (*kuttLi
 		}
 	}
 	return nil, errors.New("link not found")
-}
-
-func envOr(key, def string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return def
-}
-
-func withRobots(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Robots-Tag", "noindex, nofollow, nosnippet, noarchive")
-		next.ServeHTTP(w, r)
-	})
 }
 
 func gateCV(secret, privateCV string) http.Handler {

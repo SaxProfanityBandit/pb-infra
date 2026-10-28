@@ -7,13 +7,6 @@ data:
   default.conf: |
     server {
       listen 80;
-      location /matrix/request {
-        proxy_pass http://site.rickardsahlgren.svc.cluster.local;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-      }
       location /join {
         rewrite ^ /index.html break;
         root /usr/share/nginx/html;

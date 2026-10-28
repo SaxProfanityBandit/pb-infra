@@ -1,0 +1,143 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registration-gateway-public
+  namespace: matrix
+data:
+  index.html: |
+    <!DOCTYPE html><html><head><meta charset="utf-8"><title>chat.sax.lgbt registration</title></head>
+    <body><p>Matrix registration API. Use <a href="https://chat.sax.lgbt/join">chat.sax.lgbt/join</a>.</p></body></html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registration-gateway
+  namespace: matrix
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: registration-gateway
+  template:
+    metadata:
+      labels:
+        app: registration-gateway
+    spec:
+      initContainers:
+        - name: build-gateway
+          image: docker.io/library/golang:1.23-alpine
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              mkdir -p /tmp/build
+              cp /src/*.go /tmp/build/
+              printf 'module registration-gateway\ngo 1.23\n' > /tmp/build/go.mod
+              cd /tmp/build && go build -ldflags="-s -w" -o /gateway/registration-gateway .
+          volumeMounts:
+            - name: gateway-src
+              mountPath: /src
+            - name: gateway-bin
+              mountPath: /gateway
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+      containers:
+        - name: gateway
+          image: docker.io/library/alpine:3.20
+          command: ["/gateway/registration-gateway"]
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: LINK_SIGNING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: registration-gateway
+                  key: link_signing_key
+            - name: PUBLIC_ROOT
+              value: /srv/public
+            - name: LISTEN
+              value: ":8080"
+            - name: MATRIX_JOIN_PUBLIC_URL
+              value: "https://chat.sax.lgbt/join"
+            - name: MATRIX_SERVER_NAME
+              value: "chat.sax.lgbt"
+            - name: MATRIX_APPROVE_PUBLIC_URL
+              value: "https://approve.sax.lgbt"
+            - name: SYNAPSE_URL
+              value: "http://synapse-matrix-synapse.matrix.svc.cluster.local:8008"
+            - name: SYNAPSE_ADMIN_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: registration-gateway
+                  key: synapse_admin_access_token
+            - name: CONTACT_SMTP_HOST
+              value: "stalwart-mailserver.mailserver.svc.cluster.local:587"
+            - name: CONTACT_SMTP_TLS_INSECURE
+              value: "1"
+            - name: CONTACT_MAIL_TO
+              value: "me@sax.lgbt"
+            - name: CONTACT_MAIL_FROM
+              value: "me@sax.lgbt"
+            - name: CONTACT_SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: registration-gateway
+                  key: smtp_user
+                  optional: true
+            - name: CONTACT_SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: registration-gateway
+                  key: smtp_password
+                  optional: true
+            - name: HOOKSHOT_WEBHOOK_INTERNAL_URL
+              valueFrom:
+                secretKeyRef:
+                  name: registration-gateway
+                  key: hookshot_webhook_internal_url
+                  optional: true
+          volumeMounts:
+            - name: gateway-bin
+              mountPath: /gateway
+              readOnly: true
+            - name: public
+              mountPath: /srv/public
+              readOnly: true
+          resources:
+            limits:
+              cpu: 300m
+              memory: 256Mi
+            requests:
+              cpu: 25m
+              memory: 64Mi
+      volumes:
+        - name: gateway-src
+          configMap:
+            name: matrix-gateway-src
+        - name: gateway-bin
+          emptyDir: {}
+        - name: public
+          configMap:
+            name: registration-gateway-public
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: registration-gateway
+  namespace: matrix
+spec:
+  selector:
+    app: registration-gateway
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

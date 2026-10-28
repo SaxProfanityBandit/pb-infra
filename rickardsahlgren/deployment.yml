@@ -70,22 +70,6 @@ spec:
               value: /srv/private/cv
             - name: LISTEN
               value: ":8080"
-            - name: GATEWAY_REV
-              value: "matrix-wait-poll-1"
-            - name: MATRIX_JOIN_PUBLIC_URL
-              value: "https://chat.sax.lgbt/join"
-            - name: MATRIX_SERVER_NAME
-              value: "chat.sax.lgbt"
-            - name: MATRIX_APPROVE_PUBLIC_URL
-              value: "https://approve.sax.lgbt"
-            - name: SYNAPSE_URL
-              value: "http://synapse-matrix-synapse.matrix.svc.cluster.local:8008"
-            - name: SYNAPSE_ADMIN_ACCESS_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: matrix-reg-approve
-                  key: synapse_admin_access_token
-                  optional: true
             - name: CONTACT_SMTP_HOST
               value: "stalwart-mailserver.mailserver.svc.cluster.local:587"
             - name: CONTACT_SMTP_TLS_INSECURE

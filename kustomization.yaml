@@ -9,3 +9,23 @@ resources:
   - matrix
   - rickardsahlgren
   - kutt
+
+configMapGenerator:
+  - name: site-gateway-src
+    namespace: rickardsahlgren
+    files:
+      - main.go=gateway/main.go
+      - contact.go=gateway/contact.go
+      - util.go=gateway/util.go
+  - name: matrix-gateway-src
+    namespace: matrix
+    files:
+      - main.go=gateway/registration_main.go
+      - contact.go=gateway/contact.go
+      - util.go=gateway/util.go
+      - matrix_approve.go=gateway/matrix_approve.go
+      - matrix_request.go=gateway/matrix_request.go
+      - matrix_request_store.go=gateway/matrix_request_store.go
+
+generatorOptions:
+  disableNameSuffixHash: true

@@ -12,4 +12,5 @@ resources:
   - hookshot-queue-redis.yml
   - ingress-hooks-sax.yml
   - ingress-approve-sax.yml
+  - registration-gateway.yml
   - join-landing.yml

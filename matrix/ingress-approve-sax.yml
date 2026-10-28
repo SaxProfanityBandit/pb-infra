@@ -12,8 +12,7 @@ spec:
     - kind: Rule
       match: Host(`approve.sax.lgbt`) && PathPrefix(`/matrix/`)
       services:
-        - name: site
-          namespace: rickardsahlgren
+        - name: registration-gateway
           kind: Service
           port: http
   tls:

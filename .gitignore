@@ -18,6 +18,6 @@ rickardsahlgren/secret-link-signing.yaml
 rickardsahlgren/secret-site-admin.yaml
 rickardsahlgren/secret-site-kutt-api.yaml
 rickardsahlgren/secret-site-contact.yaml
-matrix/secret-matrix-reg-approve.yaml
+matrix/secret-registration-gateway.yaml
 kutt/secret-kutt.yaml
 vpn/wireguard-secret.local.yaml
