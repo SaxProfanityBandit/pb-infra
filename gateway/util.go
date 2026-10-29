@@ -6,7 +6,6 @@ import (
 	"os"
 )
 
-// parseRequestForm supports browser FormData (multipart) and classic urlencoded POST bodies.
 func parseRequestForm(r *http.Request) error {
 	ct := r.Header.Get("Content-Type")
 	if strings.HasPrefix(ct, "multipart/form-data") {

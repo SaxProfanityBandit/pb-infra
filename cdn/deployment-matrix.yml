@@ -30,7 +30,6 @@ spec:
             - secretRef:
                 name: cdn-rgw
           env:
-            # MMR publicBaseUrl is https://cdn.sax.lgbt/matrix/ but S3 keys are object ids at bucket root.
             - name: STRIP_LEADING_DIRECTORY_PATH
               value: "/matrix(?=/|$)"
           readinessProbe:

@@ -13,6 +13,7 @@ type pendingRequest struct {
 	Localpart string
 	Email     string
 	Display   string
+	Source    string
 	CreatedAt time.Time
 	Ready     bool
 	Token     string

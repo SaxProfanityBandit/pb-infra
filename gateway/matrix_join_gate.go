@@ -11,7 +11,6 @@ import (
 
 const (
 	joinGateCookieName = "matrix_join_gate"
-	// Path / so POST /matrix/request and /matrix/request/status receive the gate cookie after /join/via/kutt/.
 	joinGateCookiePath = "/"
 )
 
@@ -55,7 +54,6 @@ func validJoinGateCookie(r *http.Request, secret string) bool {
 	return validSig(secret, expStr, sig)
 }
 
-// joinGateAllowedURI decides if /join (or POST /matrix/request) may proceed without Kutt entry.
 func joinGateAllowedURI(originalURI, secret string) bool {
 	u, err := url.Parse(originalURI)
 	if err != nil {
@@ -107,7 +105,7 @@ func handleJoinKutt(w http.ResponseWriter, r *http.Request, slug, secret string,
 	expStr := strconv.FormatInt(exp, 10)
 	sig := sign(secret, expStr)
 	setJoinGateCookie(w, secret, expStr, sig, exp)
-	http.Redirect(w, r, joinPublicBase(), http.StatusFound)
+	http.Redirect(w, r, joinRedirectAfterKutt(slug), http.StatusFound)
 }
 
 func handleJoinGate(secret string) http.HandlerFunc {

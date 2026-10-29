@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title></title>
+  <link rel="stylesheet" href="/join.css">
+</head>
+<body>
+  <header class="site-banner" id="site-banner" hidden>
+    <img id="join-banner" src="" width="1200" height="480" alt="" decoding="async">
+  </header>
+  <main class="join-main" id="join-root" hidden>
+    <p class="muted" id="copy-loading"></p>
+  </main>
+  <template id="join-page-tpl">
+    <div id="intro">
+      <h1 id="intro-title"></h1>
+      <div id="intro-lead"></div>
+    </div>
+    <div id="source-banner" hidden class="box">
+      <p><strong id="discord-banner-title"></strong></p>
+      <div id="discord-steps"></div>
+    </div>
+    <div id="request">
+      <h2 id="request-title"></h2>
+      <div id="request-lead"></div>
+      <p class="muted"><span id="mxid-label"></span> <span class="mxid" id="mxid-preview"></span></p>
+      <form id="req-form" novalidate>
+        <label id="label-username" for="req-user"></label>
+        <input name="username" id="req-user" required pattern="[a-z0-9._=/-]+" autocomplete="username">
+        <label for="req-email"><span id="label-email"></span> <span class="muted" id="email-hint"></span></label>
+        <input name="email" id="req-email" type="email" autocomplete="email">
+        <label for="req-display"><span id="label-display"></span> <span class="muted" id="display-hint"></span></label>
+        <input name="display_name" id="req-display" autocomplete="name">
+        <input type="hidden" name="source" id="req-source" value="">
+        <label class="hp" aria-hidden="true"><input type="text" name="_hp" tabindex="-1" autocomplete="off"></label>
+        <p id="form-err" class="err" hidden></p>
+        <button type="submit" id="req-submit"></button>
+      </form>
+    </div>
+    <div id="waiting" hidden class="wait-panel" aria-live="polite" aria-busy="true" role="status" data-rid="">
+      <div class="loader" aria-hidden="true"></div>
+      <h2 id="waiting-title"></h2>
+      <p class="wait-lead" id="waiting-lead"></p>
+      <p id="waiting-hint" class="muted"></p>
+      <p class="wait-tick" id="waiting-tick"></p>
+    </div>
+    <div id="invite" hidden class="box">
+      <p id="invite-mxid" class="mxid"></p>
+      <label id="label-token" for="invite-token"></label>
+      <input class="token" id="invite-token" readonly>
+      <button type="button" id="copy-token"></button>
+      <div id="invite-client-intro"></div>
+      <div class="client-grid" role="list" id="client-grid"></div>
+      <div id="invite-homeserver-note"></div>
+      <section class="connect" aria-labelledby="connect-heading">
+        <h3 id="connect-heading"></h3>
+        <p class="muted" id="connect-lead"></p>
+        <div class="btn-row">
+          <a class="btn primary" id="open-element" href="#" rel="noopener noreferrer"></a>
+          <a class="btn" id="open-clients" href="#" rel="noopener noreferrer"></a>
+        </div>
+      </section>
+    </div>
+  </template>
+  <script src="/join.js"></script>
+</body>
+</html>

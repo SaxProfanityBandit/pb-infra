@@ -184,17 +184,33 @@ func sendInviteEmail(cfg *matrixApproveConfig, to, token, joinURL, localpart str
 	}
 	hs := homeserverPublicURL()
 	subject := "chat.sax.lgbt registration approved"
-	var body strings.Builder
-	fmt.Fprintf(&body, "Your registration request for chat.sax.lgbt was approved.\n\n")
-	if localpart != "" {
-		fmt.Fprintf(&body, "Username: @%s:%s\n\n", localpart, matrixServerName())
+	server := matrixServerName()
+	mxid := localpart
+	if mxid != "" {
+		mxid = "@" + localpart + ":" + server
 	}
-	fmt.Fprintf(&body, "Registration token (one use):\n\n  %s\n\n", token)
-	fmt.Fprintf(&body, "Join page (token + FluffyChat steps):\n\n  %s\n\n", joinURL)
-	fmt.Fprintf(&body, "Homeserver URL: %s\n\n", hs)
-	fmt.Fprintf(&body, "We recommend FluffyChat: https://fluffychat.im — create an account, set homeserver to %s, use the username above, and paste the token when Synapse asks for it.\n\n", hs)
-	fmt.Fprintf(&body, "If you did not request access, delete this message.\n\n/Rickard\n")
-	return sendSTARTTLS(cfg.smtpHost, cfg.smtpUser, cfg.smtpPass, cfg.mailFrom, []string{to}, plainEmail(cfg.mailFrom, to, subject, body.String()))
+	bodyText := ""
+	if tpl, ok := loadRegistrationTemplate("approval-email.txt"); ok {
+		bodyText = renderTemplate(tpl, map[string]string{
+			"localpart":       localpart,
+			"server_name":     server,
+			"mxid":            mxid,
+			"token":           token,
+			"join_url":        joinURL,
+			"homeserver_url":  hs,
+		})
+	} else {
+		var body strings.Builder
+		fmt.Fprintf(&body, "Your registration request for chat.sax.lgbt was approved.\n\n")
+		if localpart != "" {
+			fmt.Fprintf(&body, "Username: @%s:%s\n\n", localpart, server)
+		}
+		fmt.Fprintf(&body, "Registration token (one use):\n\n  %s\n\n", token)
+		fmt.Fprintf(&body, "Join page (token + client steps):\n\n  %s\n\n", joinURL)
+		fmt.Fprintf(&body, "Homeserver URL: %s\n\n", hs)
+		bodyText = body.String()
+	}
+	return sendSTARTTLS(cfg.smtpHost, cfg.smtpUser, cfg.smtpPass, cfg.mailFrom, []string{to}, plainEmail(cfg.mailFrom, to, subject, bodyText))
 }
 
 func plainEmail(from, to, subject, body string) []byte {

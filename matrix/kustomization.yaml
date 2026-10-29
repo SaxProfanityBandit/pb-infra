@@ -1,5 +1,19 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+configMapGenerator:
+  - name: synapse-coven-room-create-module
+    files:
+      - coven_room_create_policy.py
+    options:
+      disableNameSuffixHash: true
+  - name: chat-join-landing-wiring
+    files:
+      - join/nginx.conf
+      - index.html=join/index-shell.html
+      - join/join.js
+      - join/join.css
+    options:
+      disableNameSuffixHash: true
 resources:
   - namespace.yml
   - repository.yml

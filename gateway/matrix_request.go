@@ -99,6 +99,7 @@ func handleMatrixRequest(cfg *matrixRequestConfig) http.HandlerFunc {
 		localpart := strings.TrimSpace(strings.ToLower(r.FormValue("username")))
 		email := strings.TrimSpace(r.FormValue("email"))
 		display := strings.TrimSpace(r.FormValue("display_name"))
+		source := normalizeJoinSource(r.FormValue("source"))
 		if err := validateMatrixLocalpart(localpart); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -118,15 +119,22 @@ func handleMatrixRequest(cfg *matrixRequestConfig) http.HandlerFunc {
 			Localpart: localpart,
 			Email:     email,
 			Display:   display,
+			Source:    source,
 			CreatedAt: time.Now(),
 		})
 		mxid := "@" + localpart + ":" + cfg.serverName
 		approveURL := buildMatrixApproveURL(cfg.signSecret, cfg.approveBase, email, display, localpart, rid)
 
 		subject := fmt.Sprintf("[chat.sax.lgbt] Access request %s", mxid)
+		if source != "" {
+			subject = fmt.Sprintf("[chat.sax.lgbt] [%s] Access request %s", joinSourceDisplayLabel(source), mxid)
+		}
 		var body strings.Builder
 		fmt.Fprintf(&body, "Matrix access request\n\n")
 		fmt.Fprintf(&body, "Requested ID: %s\n", mxid)
+		if source != "" {
+			fmt.Fprintf(&body, "Source: %s\n", joinSourceDisplayLabel(source))
+		}
 		if email != "" {
 			fmt.Fprintf(&body, "Email: %s\n", email)
 		} else {
@@ -142,7 +150,7 @@ func handleMatrixRequest(cfg *matrixRequestConfig) http.HandlerFunc {
 			http.Error(w, "Could not send request", http.StatusBadGateway)
 			return
 		}
-		if err := notifyMatrixRequestHookshot(r.Context(), cfg, mxid, email, display, approveURL); err != nil {
+		if err := notifyMatrixRequestHookshot(r.Context(), cfg, mxid, email, display, source, approveURL); err != nil {
 			log.Printf("matrix request hookshot: %v", err)
 		}
 		wsig := waitSig(cfg.signSecret, rid)
@@ -213,13 +221,16 @@ func handleMatrixRequestStatus(cfg *matrixRequestConfig) http.HandlerFunc {
 	}
 }
 
-func notifyMatrixRequestHookshot(ctx context.Context, cfg *matrixRequestConfig, mxid, email, display, approveURL string) error {
+func notifyMatrixRequestHookshot(ctx context.Context, cfg *matrixRequestConfig, mxid, email, display, source, approveURL string) error {
 	if cfg.hookshotURL == "" {
 		return nil
 	}
 	var text strings.Builder
 	fmt.Fprintf(&text, "Matrix access request (chat.sax.lgbt)\n\n")
 	fmt.Fprintf(&text, "Requested ID: %s\n", mxid)
+	if source != "" {
+		fmt.Fprintf(&text, "Source: %s\n", joinSourceDisplayLabel(source))
+	}
 	if email != "" {
 		fmt.Fprintf(&text, "Email: %s\n", email)
 	} else {

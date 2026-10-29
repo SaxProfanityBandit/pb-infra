@@ -74,6 +74,13 @@ spec:
           cpu: 50m
           memory: 64Mi
     extraConfig:
+      auto_join_rooms:
+        - "!YnB3A2SZgqQMlIejEr8xHhxxhMC-3vBJm0Ch7ve_YmY"
+      modules:
+        - module: coven_room_create_policy.CovenRoomCreatePolicy
+          config:
+            allowed_localparts:
+              - sax
       registration_requires_token: true
       registrations_require_3pid:
         - email
@@ -93,15 +100,24 @@ spec:
         msc3983_appservice_otk_claims: true
         msc3984_appservice_key_query: true
     synapse:
+      extraEnv:
+        - name: PYTHONPATH
+          value: /synapse/local_modules
       extraVolumes:
         - name: hookshot-appservice
           secret:
             secretName: hookshot-appservice
             optional: true
+        - name: coven-room-create-module
+          configMap:
+            name: synapse-coven-room-create-module
       extraVolumeMounts:
         - name: hookshot-appservice
           mountPath: /synapse/config/conf.d/hookshot-registration.yaml
           subPath: registration.yaml
+          readOnly: true
+        - name: coven-room-create-module
+          mountPath: /synapse/local_modules
           readOnly: true
       strategy:
         type: Recreate

@@ -1,1 +1,1 @@
-self-host stack in virtual kubernetes cluster using fluxcd and helm charts.
+Self-hosted stack (Flux + Helm). User-facing copy and scripts live in **pb-infra-docs**.

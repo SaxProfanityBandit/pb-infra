@@ -17,6 +17,7 @@ func main() {
 	addr := envOr("LISTEN", ":8080")
 
 	mux := http.NewServeMux()
+	initJoinSourcesFromEnv()
 	ma := loadMatrixApproveConfig("")
 	if ma == nil {
 		log.Fatal("registration gateway needs SYNAPSE_ADMIN_ACCESS_TOKEN")

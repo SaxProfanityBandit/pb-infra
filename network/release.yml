@@ -116,7 +116,6 @@ spec:
   postRenderers:
     - kustomize:
         patches:
-          # Chart renders rollingUpdate alongside Recreate; API rejects that patch.
           - target:
               group: apps
               version: v1

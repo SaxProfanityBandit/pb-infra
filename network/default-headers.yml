@@ -11,6 +11,6 @@ spec:
     stsIncludeSubdomains: true
     stsPreload: true
     stsSeconds: 15552000
-    customFrameOptionsValue: SAMEORIGIN #What does this do?
+    customFrameOptionsValue: SAMEORIGIN
     customRequestHeaders:
       X-Forwarded-Proto: https
