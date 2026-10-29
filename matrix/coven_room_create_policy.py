@@ -21,7 +21,7 @@ class CovenRoomCreatePolicy:
         return config
 
     async def _may_manage_rooms(self, user_id: str) -> bool:
-        if await self._api.is_server_admin(user_id):
+        if await self._api.is_user_admin(user_id):
             return True
         try:
             localpart = UserID.from_string(user_id).localpart

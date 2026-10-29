@@ -108,6 +108,12 @@ spec:
                   name: registration-gateway
                   key: hookshot_webhook_internal_url
                   optional: true
+            - name: MOD_LOG_HOOKSHOT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: registration-gateway
+                  key: mod_log_hookshot_url
+                  optional: true
             - name: KUTT_API_URL
               value: "http://kutt.kutt.svc.cluster.local"
             - name: KUTT_API_KEY

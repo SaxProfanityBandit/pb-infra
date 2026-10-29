@@ -2,11 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"crypto/subtle"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"

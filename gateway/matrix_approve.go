@@ -20,14 +20,15 @@ import (
 const matrixApproveTTL = 7 * 24 * time.Hour
 
 type matrixApproveConfig struct {
-	synapseURL string
-	adminToken string
-	publicURL  string
-	smtpHost   string
-	smtpUser   string
-	smtpPass   string
-	mailFrom   string
-	daysValid  int
+	synapseURL      string
+	adminToken      string
+	publicURL       string
+	smtpHost        string
+	smtpUser        string
+	smtpPass        string
+	mailFrom        string
+	daysValid       int
+	modLogHookshot  string
 }
 
 func matrixApprovePublicBase() string {
@@ -54,6 +55,11 @@ func loadMatrixApproveConfig(_ string) *matrixApproveConfig {
 		adminToken: token,
 		publicURL:  strings.TrimRight(publicURL, "/"),
 		daysValid:  days,
+		modLogHookshot: strings.TrimSpace(firstNonEmpty(
+			os.Getenv("MOD_LOG_HOOKSHOT_URL"),
+			os.Getenv("HOOKSHOT_WEBHOOK_INTERNAL_URL"),
+			os.Getenv("HOOKSHOT_WEBHOOK_URL"),
+		)),
 	}
 	if u := strings.TrimSpace(os.Getenv("CONTACT_SMTP_USER")); u != "" {
 		cfg.smtpHost = envOr("CONTACT_SMTP_HOST", "stalwart-mailserver.mailserver.svc.cluster.local:587")
@@ -175,6 +181,41 @@ func synapseNewRegistrationToken(ctx context.Context, cfg *matrixApproveConfig) 
 	return out.Token, nil
 }
 
+func notifyMatrixApprovedModLog(ctx context.Context, cfg *matrixApproveConfig, p approveParams, emailed bool, mailErr error) error {
+	if cfg.modLogHookshot == "" {
+		return nil
+	}
+	server := matrixServerName()
+	var text strings.Builder
+	fmt.Fprintf(&text, "Registration approved (staff log)\n\n")
+	if p.localpart != "" {
+		fmt.Fprintf(&text, "Matrix ID: @%s:%s\n", p.localpart, server)
+	} else {
+		fmt.Fprintf(&text, "Matrix ID: (not specified on request)\n")
+	}
+	if p.name != "" {
+		fmt.Fprintf(&text, "Display name on request: %s\n", p.name)
+	}
+	if p.email != "" {
+		fmt.Fprintf(&text, "Email: %s\n", p.email)
+		if emailed && mailErr == nil {
+			text.WriteString("Token delivery: emailed\n")
+		} else if emailed && mailErr != nil {
+			text.WriteString("Token delivery: email failed (use approve page backup link)\n")
+		} else {
+			text.WriteString("Token delivery: join tab / manual link (email skipped)\n")
+		}
+	} else {
+		text.WriteString("Email: (not provided)\n")
+		text.WriteString("Token delivery: join tab / manual link\n")
+	}
+	payload := map[string]string{
+		"text":     text.String(),
+		"username": "chat.sax.lgbt",
+	}
+	return postHookshotJSON(ctx, cfg.modLogHookshot, payload)
+}
+
 func sendInviteEmail(cfg *matrixApproveConfig, to, token, joinURL, localpart string) error {
 	if cfg.smtpUser == "" || to == "" {
 		return fmt.Errorf("smtp or recipient not configured")
@@ -273,6 +314,9 @@ func handleMatrixApprove(secret string, cfg *matrixApproveConfig) http.HandlerFu
 			if mailErr != nil {
 				log.Printf("matrix approve invite mail: %v", mailErr)
 			}
+		}
+		if err := notifyMatrixApprovedModLog(r.Context(), cfg, params, sendMail, mailErr); err != nil {
+			log.Printf("matrix approve mod-log hookshot: %v", err)
 		}
 		serveApproveResult(w, params, joinURL, sendMail, mailErr)
 	}
