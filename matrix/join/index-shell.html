@@ -8,7 +8,8 @@
 </head>
 <body>
   <header class="site-banner" id="site-banner" hidden>
-    <img id="join-banner" src="" width="1200" height="480" alt="" decoding="async">
+    <div class="site-banner__art join-art" id="join-banner" role="presentation" aria-hidden="true"></div>
+    <div class="site-banner__veil" aria-hidden="true"></div>
   </header>
   <main class="join-main" id="join-root" hidden>
     <p class="muted" id="copy-loading"></p>
@@ -40,13 +41,17 @@
       </form>
     </div>
     <div id="waiting" hidden class="wait-panel" aria-live="polite" aria-busy="true" role="status" data-rid="">
-      <div class="loader" aria-hidden="true"></div>
+      <div id="wait-art" class="wait-art join-art" role="presentation" aria-hidden="true" hidden></div>
+      <div class="loader" id="wait-spinner" aria-hidden="true"></div>
       <h2 id="waiting-title"></h2>
       <p class="wait-lead" id="waiting-lead"></p>
       <p id="waiting-hint" class="muted"></p>
       <p class="wait-tick" id="waiting-tick"></p>
     </div>
     <div id="invite" hidden class="box">
+      <div id="invite-hero" class="invite-hero" hidden>
+        <div id="invite-hero-art" class="invite-hero__art join-art" role="presentation" aria-hidden="true"></div>
+      </div>
       <p id="invite-mxid" class="mxid"></p>
       <label id="label-token" for="invite-token"></label>
       <input class="token" id="invite-token" readonly>

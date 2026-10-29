@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-  var COPY_URL = "https://cdn.sax.lgbt/public/matrix/join/copy.json";
+  var COPY_URL = "https://cdn.sax.lgbt/public/matrix/join/join-copy.json";
   var HS = "https://chat.sax.lgbt";
 
   function el(id) {
@@ -20,10 +20,70 @@
     return COPY.shell || {};
   }
 
+  function joinArtBg(node, url) {
+    if (!node || !url) return false;
+    node.style.backgroundImage = "url(" + JSON.stringify(String(url)) + ")";
+    node.hidden = false;
+    return true;
+  }
+
+  function guardDecor(node) {
+    if (!node || node.dataset.guardDecor) return;
+    node.dataset.guardDecor = "1";
+    node.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+    });
+    node.addEventListener("dragstart", function (e) {
+      e.preventDefault();
+    });
+  }
+
+  function configureJoinArt(COPY) {
+    var waitArt = el("wait-art");
+    var spinner = el("wait-spinner");
+    var panel = el("waiting");
+    if (joinArtBg(waitArt, COPY.waiting_gif_url)) {
+      guardDecor(waitArt);
+      if (spinner) spinner.hidden = true;
+      if (panel) panel.classList.add("has-gif");
+    }
+    var heroArt = el("invite-hero-art");
+    if (joinArtBg(heroArt, COPY.approved_image_url)) {
+      guardDecor(heroArt);
+    }
+  }
+
+  function setJoinPhase(phase) {
+    var banner = el("site-banner");
+    if (phase === "form") {
+      if (banner) {
+        banner.hidden = false;
+        banner.classList.remove("site-banner--out");
+      }
+    } else if (phase === "waiting") {
+      if (banner) {
+        banner.hidden = false;
+        banner.classList.add("site-banner--out");
+      }
+    } else if (phase === "invite") {
+      if (banner) {
+        banner.classList.add("site-banner--out");
+        banner.hidden = true;
+      }
+      var hero = el("invite-hero");
+      var heroArt = el("invite-hero-art");
+      if (hero && heroArt && heroArt.style.backgroundImage) {
+        hero.hidden = false;
+      }
+    }
+  }
+
   function applyCopy(COPY) {
     var sh = shell(COPY);
     document.title = (COPY.intro && COPY.intro.title) || sh.default_title || "";
     HS = COPY.homeserver_url || HS;
+    configureJoinArt(COPY);
+    setJoinPhase("form");
     el("mxid-label").textContent = sh.mxid_label || "";
     el("label-username").textContent = sh.label_username || "";
     el("label-email").textContent = sh.label_email || "";
@@ -31,13 +91,17 @@
     el("label-token").textContent = sh.label_token || "";
     el("copy-token").textContent = sh.copy_token || "";
     var banner = el("join-banner");
+    var bannerWrap = el("site-banner");
     if (banner && COPY.banner_url) {
-      banner.src = COPY.banner_url;
-      banner.onerror = function () {
-        var wrap = el("site-banner");
-        if (wrap) wrap.hidden = true;
-      };
-      el("site-banner").hidden = false;
+      if (joinArtBg(banner, COPY.banner_url)) {
+        guardDecor(banner);
+        if (bannerWrap) {
+          guardDecor(bannerWrap);
+          bannerWrap.hidden = false;
+        }
+      } else if (bannerWrap) {
+        bannerWrap.hidden = true;
+      }
     }
     el("intro-title").textContent = COPY.intro.title;
     el("intro-lead").innerHTML = COPY.intro.lead_html;
@@ -147,6 +211,7 @@
 
     function showInvite(token, user, server) {
       setWaitingMode(false);
+      setJoinPhase("invite");
       el("intro").hidden = true;
       el("request").hidden = true;
       el("waiting").hidden = true;
@@ -167,6 +232,7 @@
     }
     function showSending() {
       setWaitingMode(true);
+      setJoinPhase("waiting");
       el("intro").hidden = true;
       el("request").hidden = true;
       el("invite").hidden = true;
@@ -179,6 +245,7 @@
     }
     function showWaiting(rid, hasEmail) {
       setWaitingMode(true);
+      setJoinPhase("waiting");
       el("intro").hidden = true;
       el("request").hidden = true;
       el("invite").hidden = true;
@@ -193,6 +260,9 @@
       stopPolling();
       clearWaitSession();
       setWaitingMode(false);
+      setJoinPhase("form");
+      var hero = el("invite-hero");
+      if (hero) hero.hidden = true;
       waitingEl.hidden = true;
       waitingEl.dataset.rid = "";
       el("intro").hidden = false;

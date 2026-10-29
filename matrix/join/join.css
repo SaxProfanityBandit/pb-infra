@@ -1,9 +1,12 @@
 :root { --fg:#1a1a1a; --muted:#555; --bg:#f6f6f6; --ok:#0a6; --err:#b00; --accent:#0dbd8b; }
 body{font-family:system-ui,sans-serif;margin:0;line-height:1.5;color:var(--fg);background:#fff}
 .join-main{max-width:32rem;margin:0 auto;padding:1.25rem 1rem 2.5rem}
-.site-banner{background:#111}
-.site-banner img{width:100%;height:auto;display:block;max-height:11rem;object-fit:cover;object-position:center}
+.site-banner{position:relative;background:#111;overflow:hidden;max-height:11rem;opacity:1;transition:opacity .65s ease,max-height .65s ease,margin .65s ease}
+.site-banner__art{width:100%;min-height:11rem;max-height:11rem;background-size:cover;background-position:center top}
+.site-banner__veil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 55%,rgba(255,255,255,.35) 100%)}
 .site-banner[hidden]{display:none!important}
+.site-banner.site-banner--out{opacity:0;max-height:0;margin:0;pointer-events:none}
+.join-art{background-repeat:no-repeat;background-position:center;pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
 h1{font-size:1.35rem}
 label{display:block;margin:.75rem 0 .2rem;font-size:.9rem}
 input{width:100%;box-sizing:border-box;padding:.45rem .5rem;font-size:1rem}
@@ -13,12 +16,17 @@ button{font-size:1rem;padding:.55rem 1rem;margin:.5rem .5rem 0 0;cursor:pointer}
 .box{background:var(--bg);padding:1rem;border-radius:6px;margin:1rem 0}
 #waiting[hidden],#invite[hidden],#request[hidden],#intro[hidden]{display:none!important}
 body.join-waiting #intro,body.join-waiting #request{display:none!important}
-.wait-panel{text-align:center;padding:2.5rem 1.25rem;margin:2rem auto;max-width:24rem;background:var(--bg);border-radius:12px;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+.wait-panel{text-align:center;padding:2rem 1rem 2.5rem;margin:1.5rem auto;max-width:26rem;background:var(--bg);border-radius:12px;box-shadow:0 1px 8px rgba(0,0,0,.06)}
 .wait-panel .loader{width:3rem;height:3rem;margin:0 auto 1.25rem;border:4px solid #ddd;border-top-color:#0dbd8b;border-radius:50%;animation:sp .85s linear infinite}
+.wait-panel.has-gif .loader{display:none}
+.wait-panel.has-gif{border-top:3px solid var(--accent)}
+.wait-panel .wait-art{display:block;max-width:min(100%,18rem);width:100%;min-height:11rem;margin:0 auto 1rem;background-size:contain;border-radius:8px}
 .wait-panel h2{font-size:1.2rem;margin:0 0 .5rem;font-weight:600}
 .wait-panel .wait-lead{font-size:1rem;margin:0 0 .75rem;color:var(--fg)}
 .wait-tick{font-size:.85rem;color:var(--muted);margin-top:1rem;min-height:1.25rem}
 button:disabled{opacity:.6;cursor:not-allowed}
+.invite-hero{margin:0 0 1rem;padding:.75rem 0 0;text-align:center;background:linear-gradient(180deg,rgba(13,189,139,.08),transparent 70%);border-radius:10px}
+.invite-hero__art{width:100%;max-width:20rem;min-height:13rem;margin:0 auto;background-size:contain;border-radius:10px}
 .client-intro{margin:1rem 0 .5rem;font-size:.9rem}
 .client-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.5rem;margin:.75rem 0 1.25rem}
 .client-card{display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.65rem .4rem;border:1px solid #ddd;border-radius:8px;background:#fff;color:inherit;text-decoration:none;font-size:.8rem;text-align:center}
