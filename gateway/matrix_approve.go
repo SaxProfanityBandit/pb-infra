@@ -201,7 +201,7 @@ func sendInviteEmail(cfg *matrixApproveConfig, to, token, joinURL, localpart str
 		})
 	} else {
 		var body strings.Builder
-		fmt.Fprintf(&body, "Your registration request for chat.sax.lgbt was approved.\n\n")
+		fmt.Fprintf(&body, "chat.sax.lgbt registration approved.\n\n")
 		if localpart != "" {
 			fmt.Fprintf(&body, "Username: @%s:%s\n\n", localpart, server)
 		}
@@ -294,12 +294,12 @@ func serveApproveConfirmPage(w http.ResponseWriter, r *http.Request, p approvePa
 	if p.email != "" {
 		fmt.Fprintf(&b, `<p><strong>Email:</strong> %s</p>`, email)
 	}
-	b.WriteString(`<p>Creates a one-use registration token and a join link for chat.sax.lgbt.</p><form method="POST" action="`)
+	b.WriteString(`<p>Issues a one-use token and a join link on chat.sax.lgbt.</p><form method="POST" action="`)
 	b.WriteString(escHTML(r.URL.RequestURI()))
 	b.WriteString(`">`)
 	if p.email != "" {
-		fmt.Fprintf(&b, `<p class="muted">Unless you check Skip email, the token and join link go to %s.</p>`, email)
-		fmt.Fprintf(&b, `<label><input type="checkbox" name="skip_email" value="1"> Skip email (token only on the join page if they keep the tab open)</label>`)
+		fmt.Fprintf(&b, `<p class="muted">Token and link go to %s unless you tick skip below.</p>`, email)
+		fmt.Fprintf(&b, `<label><input type="checkbox" name="skip_email" value="1"> Skip email (they need the join tab open)</label>`)
 	}
 	b.WriteString(`<p><button type="submit">Approve</button></p></form></body></html>`)
 	_, _ = w.Write([]byte(b.String()))
@@ -314,18 +314,18 @@ func serveApproveResult(w http.ResponseWriter, p approveParams, joinURL string, 
 	if p.localpart != "" {
 		fmt.Fprintf(&b, `<p class="ok"><strong>@%s:%s</strong> can finish registration.</p>`, escHTML(p.localpart), escHTML(p.server))
 	}
-	b.WriteString(`<p>You do not need to open the join link yourself — this page is only your confirmation.</p>`)
+	b.WriteString(`<p>You do not need to open the join link; this is just your confirmation.</p>`)
 	if p.email != "" {
 		if sent && mailErr == nil {
-			fmt.Fprintf(&b, `<p>We emailed the token and join instructions to <strong>%s</strong>.</p>`, escHTML(p.email))
+			fmt.Fprintf(&b, `<p>Token and join link sent to <strong>%s</strong>.</p>`, escHTML(p.email))
 		} else if sent && mailErr != nil {
-			b.WriteString(`<p><strong>Email failed.</strong> Send them the manual link below.</p>`)
+			b.WriteString(`<p><strong>Email failed.</strong> Paste the backup link below.</p>`)
 		}
 	} else {
-		b.WriteString(`<p>No email on the request — they must keep the join tab open or you send them the link below.</p>`)
+		b.WriteString(`<p>No email on the request. They need the join tab open, or you send the link below.</p>`)
 	}
-	b.WriteString(`<p class="muted">If their browser tab is still on “Waiting for approval”, it should switch to the token automatically.</p>`)
-	b.WriteString(`<details><summary>Manual join link (backup)</summary><p class="mono" id="join">`)
+	b.WriteString(`<p class="muted">If they left chat.sax.lgbt/join open on "Awaiting approval", it should flip to the token on its own.</p>`)
+	b.WriteString(`<details><summary>Backup join link</summary><p class="mono" id="join">`)
 	b.WriteString(escHTML(joinURL))
 	b.WriteString(`</p><button type="button" onclick="navigator.clipboard.writeText(document.getElementById('join').innerText)">Copy link</button></details>`)
 	b.WriteString(`</body></html>`)

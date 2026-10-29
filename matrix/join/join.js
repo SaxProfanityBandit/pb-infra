@@ -1,11 +1,11 @@
 (function () {
-  "use strict";
-  var COPY_URL = "/join/copy.json";
+  var PAGE_URL = "/join/page.json";
   var HS = "https://chat.sax.lgbt";
+  var BOOT_ERR = "Page text didn't load. Reload in a minute.";
 
   function el(id) {
     var root = document.getElementById("join-root");
-    if (root && id !== "join-root" && id !== "join-page-tpl") {
+    if (root && id !== "join-root" && id !== "page-tpl") {
       var scoped = root.querySelector("#" + CSS.escape(id));
       if (scoped) return scoped;
     }
@@ -13,30 +13,31 @@
   }
 
   function mountPage() {
-    var tpl = el("join-page-tpl");
+    var tpl = el("page-tpl");
     var root = el("join-root");
     root.innerHTML = "";
     root.appendChild(tpl.content.cloneNode(true));
     while (tpl.content.firstChild) {
       tpl.content.removeChild(tpl.content.firstChild);
     }
+    if (tpl.parentNode) tpl.parentNode.removeChild(tpl);
     root.hidden = false;
   }
 
-  function shell(COPY) {
-    return COPY.shell || {};
+  function labels(page) {
+    return page.shell || {};
   }
 
-  function joinArtBg(node, url) {
+  function artBg(node, url) {
     if (!node || !url) return false;
     node.style.backgroundImage = "url(" + JSON.stringify(String(url)) + ")";
     node.hidden = false;
     return true;
   }
 
-  function guardDecor(node) {
-    if (!node || node.dataset.guardDecor) return;
-    node.dataset.guardDecor = "1";
+  function blockDrag(node) {
+    if (!node || node.dataset.nosave) return;
+    node.dataset.nosave = "1";
     node.addEventListener("contextmenu", function (e) {
       e.preventDefault();
     });
@@ -45,29 +46,24 @@
     });
   }
 
-  function configureJoinArt(COPY) {
+  function setupArt(page) {
     var waitArt = el("wait-art");
     var spinner = el("wait-spinner");
     var panel = el("waiting");
-    if (joinArtBg(waitArt, COPY.waiting_gif_url)) {
-      guardDecor(waitArt);
+    if (artBg(waitArt, page.waiting_gif_url)) {
+      blockDrag(waitArt);
       if (spinner) spinner.hidden = true;
       if (panel) panel.classList.add("has-gif");
     }
     var heroArt = el("invite-hero-art");
-    if (joinArtBg(heroArt, COPY.approved_image_url)) {
-      guardDecor(heroArt);
+    if (artBg(heroArt, page.approved_image_url)) {
+      blockDrag(heroArt);
     }
   }
 
-  function setJoinPhase(phase) {
+  function setPhase(phase) {
     var banner = el("site-banner");
-    if (phase === "form") {
-      if (banner) {
-        banner.hidden = false;
-        banner.classList.remove("site-banner--out");
-      }
-    } else if (phase === "waiting") {
+    if (phase === "form" || phase === "waiting") {
       if (banner) {
         banner.hidden = false;
         banner.classList.remove("site-banner--out");
@@ -85,12 +81,12 @@
     }
   }
 
-  function applyCopy(COPY) {
-    var sh = shell(COPY);
-    document.title = (COPY.intro && COPY.intro.title) || sh.default_title || "";
-    HS = COPY.homeserver_url || HS;
-    configureJoinArt(COPY);
-    setJoinPhase("form");
+  function fillPage(page) {
+    var sh = labels(page);
+    document.title = (page.intro && page.intro.title) || sh.default_title || "chat.sax.lgbt";
+    HS = page.homeserver_url || HS;
+    setupArt(page);
+    setPhase("form");
     el("mxid-label").textContent = sh.mxid_label || "";
     el("label-username").textContent = sh.label_username || "";
     el("label-email").textContent = sh.label_email || "";
@@ -99,22 +95,22 @@
     el("copy-token").textContent = sh.copy_token || "";
     var banner = el("join-banner");
     var bannerWrap = el("site-banner");
-    if (banner && COPY.banner_url) {
-      if (joinArtBg(banner, COPY.banner_url)) {
-        guardDecor(banner);
+    if (banner && page.banner_url) {
+      if (artBg(banner, page.banner_url)) {
+        blockDrag(banner);
         if (bannerWrap) {
-          guardDecor(bannerWrap);
+          blockDrag(bannerWrap);
           bannerWrap.hidden = false;
         }
       } else if (bannerWrap) {
         bannerWrap.hidden = true;
       }
     }
-    el("intro-title").textContent = (COPY.intro && COPY.intro.title) || "";
-    el("intro-lead").innerHTML = (COPY.intro && COPY.intro.lead_html) || "";
+    el("intro-title").textContent = (page.intro && page.intro.title) || "";
+    el("intro-lead").innerHTML = (page.intro && page.intro.lead_html) || "";
     var corridorJoin = el("corridor-join");
     if (corridorJoin) {
-      var cj = COPY.corridor_join;
+      var cj = page.corridor_join;
       if (cj && cj.html) {
         corridorJoin.innerHTML = cj.html;
         corridorJoin.hidden = false;
@@ -123,16 +119,15 @@
         corridorJoin.hidden = true;
       }
     }
-    el("request-title").textContent = (COPY.request && COPY.request.title) || "";
-    el("request-lead").innerHTML = (COPY.request && COPY.request.lead_html) || "";
-    el("req-submit").textContent = (COPY.request && COPY.request.submit) || "";
+    el("request-title").textContent = (page.request && page.request.title) || "";
+    el("request-lead").innerHTML = (page.request && page.request.lead_html) || "";
+    el("req-submit").textContent = (page.request && page.request.submit) || "";
     el("email-hint").textContent = sh.email_hint_optional || "";
     el("display-hint").textContent = sh.display_hint_optional || "";
-    el("invite-client-intro").innerHTML =
-      (COPY.invite && COPY.invite.client_intro_html) || "";
+    el("invite-client-intro").innerHTML = (page.invite && page.invite.client_intro_html) || "";
     var nextSteps = el("invite-next-steps");
     if (nextSteps) {
-      var ns = COPY.invite && COPY.invite.next_steps_html;
+      var ns = page.invite && page.invite.next_steps_html;
       if (ns) {
         nextSteps.innerHTML = ns;
         nextSteps.hidden = false;
@@ -142,20 +137,17 @@
       }
     }
     el("invite-homeserver-note").innerHTML =
-      (COPY.invite && COPY.invite.homeserver_note_html) || "";
-    el("connect-heading").textContent =
-      (COPY.invite && COPY.invite.connect && COPY.invite.connect.heading) || "";
-    el("connect-lead").textContent =
-      (COPY.invite && COPY.invite.connect && COPY.invite.connect.lead) || "";
-    el("open-element").textContent =
-      (COPY.invite && COPY.invite.connect && COPY.invite.connect.primary_label) ||
-      "";
-    el("open-element").href = COPY.element_download_url || "https://element.io/download";
-    el("open-clients").textContent = COPY.invite.connect.secondary_label;
-    el("open-clients").href = COPY.matrix_clients_url || "https://matrix.org/ecosystem/clients/";
+      (page.invite && page.invite.homeserver_note_html) || "";
+    var conn = page.invite && page.invite.connect;
+    el("connect-heading").textContent = (conn && conn.heading) || "";
+    el("connect-lead").textContent = (conn && conn.lead) || "";
+    el("open-element").textContent = (conn && conn.primary_label) || "";
+    el("open-element").href = page.element_download_url || "https://element.io/download";
+    el("open-clients").textContent = (conn && conn.secondary_label) || "";
+    el("open-clients").href = page.matrix_clients_url || "https://matrix.org/ecosystem/clients/";
     var grid = el("client-grid");
     grid.innerHTML = "";
-    (COPY.clients || []).forEach(function (c) {
+    (page.clients || []).forEach(function (c) {
       var a = document.createElement("a");
       a.className = "client-card" + (c.recommended ? " recommended" : "");
       a.href = c.href;
@@ -167,13 +159,12 @@
         '<span class="get">' + c.get + "</span>";
       grid.appendChild(a);
     });
-    initApp(COPY);
+    boot(page);
   }
 
-  function initApp(COPY) {
-    var sh = shell(COPY);
-    var HS = COPY.homeserver_url || "https://chat.sax.lgbt";
-    var serverName = HS.replace(/^https?:\/\//, "");
+  function boot(page) {
+    var sh = labels(page);
+    var serverName = (page.homeserver_url || HS).replace(/^https?:\/\//, "");
     var params = new URLSearchParams(location.search);
     var reqUser = el("req-user");
     var reqForm = el("req-form");
@@ -183,8 +174,8 @@
     var waitingEl = el("waiting");
     var pollTimer = null;
     var pollSession = null;
-    var SS_KEY = "matrix_join_wait_v1";
-    var SS_SOURCE = "matrix_join_source_v1";
+    var SS_KEY = "mj_wait";
+    var SS_SOURCE = "mj_src";
     var sourceInput = el("req-source");
     var joinSource = (params.get("source") || "").trim().toLowerCase();
     if (!joinSource) {
@@ -200,14 +191,14 @@
           sessionStorage.setItem(SS_SOURCE, joinSource);
         } catch (e) {}
       }
-      if (joinSource === "discord-migration" && COPY.discord) {
-        el("intro-title").textContent = COPY.discord.intro.title;
-        el("intro-lead").innerHTML = COPY.discord.intro.lead_html;
-        el("request-title").textContent = COPY.discord.request.title;
-        el("request-lead").innerHTML = COPY.discord.request.lead_html;
-        el("email-hint").textContent = COPY.discord.request.email_hint;
-        el("display-hint").textContent = COPY.discord.request.display_hint;
-        el("req-submit").textContent = COPY.discord.request.submit;
+      if (joinSource === "discord-migration" && page.discord) {
+        el("intro-title").textContent = page.discord.intro.title;
+        el("intro-lead").innerHTML = page.discord.intro.lead_html;
+        el("request-title").textContent = page.discord.request.title;
+        el("request-lead").innerHTML = page.discord.request.lead_html;
+        el("email-hint").textContent = page.discord.request.email_hint;
+        el("display-hint").textContent = page.discord.request.display_hint;
+        el("req-submit").textContent = page.discord.request.submit;
       }
     }
     applyJoinSource();
@@ -244,52 +235,52 @@
 
     function showInvite(token, user, server) {
       setWaitingMode(false);
-      setJoinPhase("invite");
+      setPhase("invite");
       el("intro").hidden = true;
       el("request").hidden = true;
       el("waiting").hidden = true;
       el("invite").hidden = false;
       el("invite-token").value = token;
-      el("invite-mxid").textContent = "@" + user + ":" + (server || COPY.homeserver_url || "chat.sax.lgbt");
+      el("invite-mxid").textContent = "@" + user + ":" + (server || serverName);
       var hsEl = el("hs-url");
-      if (hsEl) hsEl.textContent = COPY.homeserver_url || "https://chat.sax.lgbt";
+      if (hsEl) hsEl.textContent = page.homeserver_url || HS;
       el("copy-token").onclick = function () {
         navigator.clipboard.writeText(token);
       };
     }
     function waitingHint(hasEmail) {
-      return hasEmail ? COPY.waiting.hint_with_email : COPY.waiting.hint_no_email;
+      return hasEmail ? page.waiting.hint_with_email : page.waiting.hint_no_email;
     }
     function setWaitingMode(on) {
       document.body.classList.toggle("join-waiting", on);
     }
     function showSending() {
       setWaitingMode(true);
-      setJoinPhase("waiting");
+      setPhase("waiting");
       el("request").hidden = true;
       el("invite").hidden = true;
       var introBody = el("intro-body");
       if (introBody) introBody.hidden = true;
       waitingEl.hidden = false;
       waitingEl.dataset.rid = "";
-      el("waiting-title").textContent = COPY.waiting.sending_title;
-      el("waiting-hint").textContent = COPY.waiting.sending_lead || "";
+      el("waiting-title").textContent = page.waiting.sending_title;
+      el("waiting-hint").textContent = page.waiting.sending_lead || "";
       el("waiting-tick").textContent = "";
       var spinner = el("wait-spinner");
       if (spinner) spinner.hidden = false;
     }
     function showWaiting(rid, hasEmail) {
       setWaitingMode(true);
-      setJoinPhase("waiting");
+      setPhase("waiting");
       el("request").hidden = true;
       el("invite").hidden = true;
       var introBody = el("intro-body");
       if (introBody) introBody.hidden = true;
       waitingEl.hidden = false;
       waitingEl.dataset.rid = rid;
-      el("waiting-title").textContent = COPY.waiting.title;
+      el("waiting-title").textContent = page.waiting.title;
       el("waiting-hint").textContent = waitingHint(hasEmail);
-      el("waiting-tick").textContent = COPY.waiting.tick;
+      el("waiting-tick").textContent = page.waiting.tick;
       var spinner = el("wait-spinner");
       if (spinner) spinner.hidden = true;
     }
@@ -297,7 +288,7 @@
       stopPolling();
       clearWaitSession();
       setWaitingMode(false);
-      setJoinPhase("form");
+      setPhase("form");
       var hero = el("invite-hero");
       if (hero) hero.hidden = true;
       waitingEl.hidden = true;
@@ -310,7 +301,8 @@
       formErr.textContent = msg;
       formErr.hidden = false;
       reqSubmit.disabled = false;
-      reqSubmit.textContent = joinSource === "discord-migration" ? COPY.discord.request.submit : COPY.request.submit;
+      reqSubmit.textContent =
+        joinSource === "discord-migration" ? page.discord.request.submit : page.request.submit;
     }
     function startPolling(rid, wsig, hasEmail) {
       stopPolling();
@@ -327,9 +319,10 @@
           .then(function (r) {
             if (!sessionMatches(rid, wsig) || pollSession.gen !== gen) return null;
             if (!r.ok) {
-              var statusFmt = (COPY.errors && COPY.errors.status_check_failed) || sh.status_check_failed || "";
+              var statusFmt =
+                (page.errors && page.errors.status_check_failed) || sh.status_check_failed || "";
               throw new Error(
-                r.status === 403 ? COPY.errors.wait_invalid : statusFmt.replace("%s", String(r.status))
+                r.status === 403 ? page.errors.wait_invalid : statusFmt.replace("%s", String(r.status))
               );
             }
             return r.json();
@@ -345,7 +338,7 @@
             }
             if (d.status === "expired") {
               resetToForm();
-              showFormError(COPY.errors.expired);
+              showFormError(page.errors.expired);
               return;
             }
             if (waitingEl.dataset.rid !== rid) return;
@@ -395,7 +388,7 @@
       var hasEmail = el("req-email").value.trim() !== "";
       var user = (reqUser.value || "").trim().toLowerCase();
       if (!user) {
-        showFormError(COPY.errors.username_required);
+        showFormError(page.errors.username_required);
         return;
       }
       var body = new URLSearchParams();
@@ -419,13 +412,15 @@
         .then(function (res) {
           if (!res.ok) {
             return res.text().then(function (t) {
-              throw new Error(t && t.length < 200 ? t : COPY.errors.request_failed + " (" + res.status + ").");
+              throw new Error(
+                t && t.length < 200 ? t : page.errors.request_failed + " (" + res.status + ")."
+              );
             });
           }
           return res.json();
         })
         .then(function (d) {
-          if (!d.rid || !d.wsig) throw new Error(COPY.errors.unexpected_response);
+          if (!d.rid || !d.wsig) throw new Error(page.errors.unexpected_response);
           var q = "rid=" + encodeURIComponent(d.rid) + "&wsig=" + encodeURIComponent(d.wsig);
           if (d.mail === "1") q += "&mail=1";
           history.replaceState(null, "", "/join?" + q);
@@ -433,27 +428,26 @@
         })
         .catch(function (err) {
           resetToForm();
-          showFormError(err.message || COPY.errors.request_failed);
+          showFormError(err.message || page.errors.request_failed);
         });
     });
   }
 
-  fetch(COPY_URL, { cache: "no-store" })
+  fetch(PAGE_URL, { cache: "no-store" })
     .then(function (r) {
-      if (!r.ok) throw new Error("copy.json");
+      if (!r.ok) throw new Error("load");
       return r.json();
     })
-    .then(function (COPY) {
+    .then(function (page) {
       mountPage();
-      applyCopy(COPY);
+      fillPage(page);
     })
     .catch(function () {
       var root = el("join-root");
       if (root) root.hidden = false;
-      var errEl = el("copy-loading");
+      var errEl = el("boot-msg");
       if (errEl) {
-        errEl.textContent =
-          "Could not load registration copy. Try again later.";
+        errEl.textContent = BOOT_ERR;
         errEl.hidden = false;
       }
     });

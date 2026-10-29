@@ -1,3 +1,4 @@
+/* chat.sax.lgbt/join */
 :root { --fg:#1f1a28; --muted:#5c5568; --bg:#f6f4fa; --ok:#0a6; --err:#b00; --accent:#0dbd8b; --panel-border:#e4deef; --link:#6b5a8e; --banner-h:calc(100vw * 480 / 1200); --join-col:min(42rem,calc(100vw - 2rem)); --banner-content-start:0.47; --banner-logo-shift:-1.875rem; }
 body{font-family:system-ui,sans-serif;margin:0;line-height:1.55;color:var(--fg);background:#fcfbfe}
 .join-layout{display:grid;grid-template-columns:minmax(1rem,1fr) var(--join-col) minmax(1rem,1fr);grid-template-rows:auto;align-items:start}
@@ -42,7 +43,6 @@ body.join-waiting #intro-body{display:none!important}
 body.join-waiting #waiting{display:block!important}
 .wait-panel{text-align:center;padding:2rem 1rem 2.5rem;margin:1.5rem auto;max-width:26rem;background:var(--bg);border-radius:12px;box-shadow:0 1px 8px rgba(0,0,0,.06)}
 .wait-panel--intro{margin:0;padding:.5rem 0 1rem;max-width:none;background:transparent;box-shadow:none;border-radius:0;border-top:none!important}
-.wait-panel--intro .wait-art{max-width:min(100%,32rem);min-height:18rem;margin-bottom:1.25rem}
 .wait-panel--intro h2{font-size:1.5rem;margin:0 0 .85rem}
 .wait-panel--intro #waiting-hint{text-align:center;font-size:.95rem;line-height:1.55;max-width:36rem;margin:0 auto}
 .invite-next-steps{margin:1rem 0}
@@ -50,6 +50,7 @@ body.join-waiting #waiting{display:block!important}
 .wait-panel.has-gif .loader{display:none}
 .wait-panel.has-gif:not(.wait-panel--intro){border-top:3px solid var(--accent)}
 .wait-panel .wait-art{display:block;max-width:min(100%,18rem);width:100%;min-height:11rem;margin:0 auto 1rem;background-size:contain;border-radius:8px}
+.wait-panel.wait-panel--intro .wait-art{width:100%;max-width:100%;min-height:min(36rem,72vw);margin:0 auto 1.25rem;background-size:contain}
 .wait-panel h2{font-size:1.2rem;margin:0 0 .5rem;font-weight:600}
 .wait-panel .wait-lead{font-size:1rem;margin:0 0 .75rem;color:var(--fg)}
 .wait-tick{font-size:.85rem;color:var(--muted);margin-top:1rem;min-height:1.25rem}

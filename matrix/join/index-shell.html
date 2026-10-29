@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title></title>
+  <title>chat.sax.lgbt</title>
   <link rel="stylesheet" href="/join.css">
 </head>
 <body>
@@ -13,10 +13,10 @@
     <div class="site-banner__veil" aria-hidden="true"></div>
   </header>
   <main class="join-main" id="join-root" hidden>
-    <p class="muted" id="copy-loading"></p>
+    <p class="muted" id="boot-msg"></p>
   </main>
   </div>
-  <template id="join-page-tpl">
+  <template id="page-tpl">
     <div id="intro" class="join-intro-stack">
       <div class="join-intro-panel">
         <div id="intro-body">
@@ -24,11 +24,10 @@
           <div id="intro-lead"></div>
           <div id="corridor-join" class="corridor-join" hidden></div>
         </div>
-        <div id="waiting" hidden class="wait-panel wait-panel--intro" aria-live="polite" aria-busy="true" role="status" data-rid="">
+        <div id="waiting" hidden class="wait-panel wait-panel--intro" aria-live="polite" data-rid="">
           <div id="wait-art" class="wait-art join-art" role="presentation" aria-hidden="true" hidden></div>
           <div class="loader" id="wait-spinner" aria-hidden="true"></div>
           <h2 id="waiting-title"></h2>
-          <p class="wait-lead" id="waiting-lead" hidden></p>
           <p id="waiting-hint" class="muted"></p>
           <p class="wait-tick" id="waiting-tick"></p>
         </div>
