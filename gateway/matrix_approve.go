@@ -183,7 +183,6 @@ func sendInviteEmail(cfg *matrixApproveConfig, to, token, joinURL, localpart str
 		return err
 	}
 	hs := homeserverPublicURL()
-	elementReg := "https://app.element.io/#/register?hs_url=" + url.QueryEscape(hs)
 	subject := "chat.sax.lgbt registration approved"
 	var body strings.Builder
 	fmt.Fprintf(&body, "Your registration request for chat.sax.lgbt was approved.\n\n")
@@ -191,9 +190,9 @@ func sendInviteEmail(cfg *matrixApproveConfig, to, token, joinURL, localpart str
 		fmt.Fprintf(&body, "Username: @%s:%s\n\n", localpart, matrixServerName())
 	}
 	fmt.Fprintf(&body, "Registration token (one use):\n\n  %s\n\n", token)
-	fmt.Fprintf(&body, "Join page with token and client links:\n\n  %s\n\n", joinURL)
-	fmt.Fprintf(&body, "Element web signup (homeserver prefilled):\n\n  %s\n\n", elementReg)
+	fmt.Fprintf(&body, "Join page (token + FluffyChat steps):\n\n  %s\n\n", joinURL)
 	fmt.Fprintf(&body, "Homeserver URL: %s\n\n", hs)
+	fmt.Fprintf(&body, "We recommend FluffyChat: https://fluffychat.im — create an account, set homeserver to %s, use the username above, and paste the token when Synapse asks for it.\n\n", hs)
 	fmt.Fprintf(&body, "If you did not request access, delete this message.\n\n/Rickard\n")
 	return sendSTARTTLS(cfg.smtpHost, cfg.smtpUser, cfg.smtpPass, cfg.mailFrom, []string{to}, plainEmail(cfg.mailFrom, to, subject, body.String()))
 }
@@ -293,19 +292,26 @@ func serveApproveConfirmPage(w http.ResponseWriter, r *http.Request, p approvePa
 func serveApproveResult(w http.ResponseWriter, p approveParams, joinURL string, sent bool, mailErr error) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	var b strings.Builder
-	b.WriteString(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Invite link</title>
-<style>body{font-family:system-ui,sans-serif;max-width:32rem;margin:2rem auto;padding:0 1rem;line-height:1.5}.mono{font-family:monospace;word-break:break-all;background:#f4f4f4;padding:.5rem}button{margin-top:.5rem}</style></head><body>`)
-	b.WriteString(`<h1>Invite link</h1><p class="mono" id="join">`)
-	b.WriteString(escHTML(joinURL))
-	b.WriteString(`</p>`)
+	b.WriteString(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Request approved</title>
+<style>body{font-family:system-ui,sans-serif;max-width:32rem;margin:2rem auto;padding:0 1rem;line-height:1.5}.ok{color:#0a6}.mono{font-family:monospace;word-break:break-all;background:#f4f4f4;padding:.5rem;font-size:.85rem}details{margin-top:1.25rem}button{margin-top:.5rem;font-size:.95rem;padding:.45rem .85rem}</style></head><body>`)
+	b.WriteString(`<h1>Request approved</h1>`)
+	if p.localpart != "" {
+		fmt.Fprintf(&b, `<p class="ok"><strong>@%s:%s</strong> can finish registration.</p>`, escHTML(p.localpart), escHTML(p.server))
+	}
+	b.WriteString(`<p>You do not need to open the join link yourself — this page is only your confirmation.</p>`)
 	if p.email != "" {
 		if sent && mailErr == nil {
-			fmt.Fprintf(&b, `<p>Sent the token and join link to <strong>%s</strong>.</p>`, escHTML(p.email))
+			fmt.Fprintf(&b, `<p>We emailed the token and join instructions to <strong>%s</strong>.</p>`, escHTML(p.email))
 		} else if sent && mailErr != nil {
-			b.WriteString(`<p>Email failed. Copy the link below.</p>`)
+			b.WriteString(`<p><strong>Email failed.</strong> Send them the manual link below.</p>`)
 		}
+	} else {
+		b.WriteString(`<p>No email on the request — they must keep the join tab open or you send them the link below.</p>`)
 	}
-	b.WriteString(`<button type="button" onclick="navigator.clipboard.writeText(document.getElementById('join').innerText)">Copy link</button>`)
+	b.WriteString(`<p class="muted">If their browser tab is still on “Waiting for approval”, it should switch to the token automatically.</p>`)
+	b.WriteString(`<details><summary>Manual join link (backup)</summary><p class="mono" id="join">`)
+	b.WriteString(escHTML(joinURL))
+	b.WriteString(`</p><button type="button" onclick="navigator.clipboard.writeText(document.getElementById('join').innerText)">Copy link</button></details>`)
 	b.WriteString(`</body></html>`)
 	_, _ = w.Write([]byte(b.String()))
 }

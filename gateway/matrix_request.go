@@ -88,7 +88,7 @@ func handleMatrixRequest(cfg *matrixRequestConfig) http.HandlerFunc {
 		if !requireJoinGate(w, r, cfg.signSecret) {
 			return
 		}
-		if err := r.ParseForm(); err != nil {
+		if err := parseRequestForm(r); err != nil {
 			http.Error(w, "Bad form", http.StatusBadRequest)
 			return
 		}

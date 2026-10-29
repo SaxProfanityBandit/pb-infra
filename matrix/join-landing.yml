@@ -12,10 +12,12 @@ data:
         proxy_pass http://registration-gateway.matrix.svc.cluster.local/join/gate;
         proxy_pass_request_body off;
         proxy_set_header Content-Length "";
-        proxy_set_header X-Original-URI $request_uri;
+        # auth_request subrequest URI is /join/gate; pass the browser URI (token, rid, wsig).
+        proxy_set_header X-Original-URI $join_client_uri;
       }
 
       location /join {
+        set $join_client_uri $request_uri;
         auth_request /join/gate;
         error_page 403 = @join_forbidden;
         rewrite ^ /index.html break;
@@ -46,15 +48,19 @@ data:
         .ok{color:var(--ok)}
         .box{background:var(--bg);padding:1rem;border-radius:6px;margin:1rem 0}
         #waiting[hidden],#invite[hidden],#request[hidden],#intro[hidden]{display:none!important}
-        .wait-panel{text-align:center;padding:2rem 1rem;margin:1.5rem 0;background:var(--bg);border-radius:8px}
-        .wait-panel .spin{width:2rem;height:2rem;border-width:3px;margin:0 auto 1rem;display:block}
-        .wait-panel h2{font-size:1.15rem;margin:0 0 .75rem;font-weight:600}
+        body.join-waiting #intro,body.join-waiting #request{display:none!important}
+        .wait-panel{text-align:center;padding:2.5rem 1.25rem;margin:2rem auto;max-width:24rem;background:var(--bg);border-radius:12px;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+        .wait-panel .loader{width:3rem;height:3rem;margin:0 auto 1.25rem;border:4px solid #ddd;border-top-color:#0dbd8b;border-radius:50%;animation:sp .85s linear infinite}
+        .wait-panel h2{font-size:1.2rem;margin:0 0 .5rem;font-weight:600}
+        .wait-panel .wait-lead{font-size:1rem;margin:0 0 .75rem;color:var(--fg)}
         .wait-tick{font-size:.85rem;color:var(--muted);margin-top:1rem;min-height:1.25rem}
         button:disabled{opacity:.6;cursor:not-allowed}
         .client-intro{margin:1rem 0 .5rem;font-size:.9rem}
         .client-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.5rem;margin:.75rem 0 1.25rem}
         .client-card{display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.65rem .4rem;border:1px solid #ddd;border-radius:8px;background:#fff;color:inherit;text-decoration:none;font-size:.8rem;text-align:center;transition:border-color .15s,box-shadow .15s}
         .client-card:hover{border-color:#888;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+        .client-card.recommended{border-color:#0dbd8b;box-shadow:0 0 0 1px #0dbd8b}
+        .client-card.recommended .get{color:#0a9a72;font-weight:600}
         .client-card img{width:2.25rem;height:2.25rem;object-fit:contain}
         .client-card .name{font-weight:600;line-height:1.2}
         .client-card .get{color:var(--muted);font-size:.75rem}
@@ -82,9 +88,9 @@ data:
         <h2>Request a token</h2>
         <p class="muted">Choose a username (letters, numbers, <code>.</code> <code>_</code> <code>=</code> <code>-</code> <code>/</code> only). This page shows the token once the request is approved.</p>
         <p class="muted">Matrix ID: <span class="mxid" id="mxid-preview">@…:chat.sax.lgbt</span></p>
-        <form id="req-form" action="/matrix/request" method="post">
+        <form id="req-form" novalidate>
           <label>Username</label>
-          <input name="username" id="req-user" required pattern="[a-z0-9._=\\-/]+" autocomplete="username">
+          <input name="username" id="req-user" required pattern="[a-z0-9._=/-]+" autocomplete="username">
           <label>Email <span class="muted">(optional)</span></label>
           <input name="email" id="req-email" type="email" autocomplete="email">
           <label>Display name <span class="muted">(optional)</span></label>
@@ -95,9 +101,10 @@ data:
         </form>
       </div>
 
-      <div id="waiting" hidden class="wait-panel" aria-live="polite" data-rid="">
-        <span class="spin" aria-hidden="true"></span>
+      <div id="waiting" hidden class="wait-panel" aria-live="polite" aria-busy="true" role="status" data-rid="">
+        <div class="loader" aria-hidden="true"></div>
         <h2 id="waiting-title">Waiting for approval</h2>
+        <p class="wait-lead" id="waiting-lead"></p>
         <p id="waiting-hint" class="muted"></p>
         <p class="wait-tick" id="waiting-tick"></p>
       </div>
@@ -107,17 +114,17 @@ data:
         <label>Registration token</label>
         <input class="token" id="invite-token" readonly>
         <button type="button" id="copy-token">Copy token</button>
-        <p class="client-intro muted">Install a client from the list below, open Element via the buttons, and paste this token when registration asks for it.</p>
+        <p class="client-intro muted"><strong>FluffyChat</strong> is what we recommend: install from the link below, sign up with homeserver <code>https://chat.sax.lgbt</code>, use the username above, and paste this token when the app asks for a registration token.</p>
         <div class="client-grid" role="list">
+          <a class="client-card recommended" role="listitem" href="https://fluffychat.im" target="_blank" rel="noopener noreferrer">
+            <img src="https://gitlab.com/famedly/fluffychat/-/raw/main/assets/logo.png" width="36" height="36" alt="">
+            <span class="name">FluffyChat</span>
+            <span class="get">Recommended</span>
+          </a>
           <a class="client-card" role="listitem" href="https://element.io/download" target="_blank" rel="noopener noreferrer">
             <img src="https://element.io/assets-32bb636196f91ed59d7a49190e26b42c/5ef25c0d30ee3108da4c25e9/5f365d3197194f8c73b00112_logo-mark-primary.svg" width="36" height="36" alt="">
             <span class="name">Element</span>
-            <span class="get">Download</span>
-          </a>
-          <a class="client-card" role="listitem" href="https://fluffychat.im" target="_blank" rel="noopener noreferrer">
-            <img src="https://gitlab.com/famedly/fluffychat/-/raw/main/assets/logo.png" width="36" height="36" alt="">
-            <span class="name">FluffyChat</span>
-            <span class="get">Get app</span>
+            <span class="get">Alternative</span>
           </a>
           <a class="client-card" role="listitem" href="https://schildi.chat/" target="_blank" rel="noopener noreferrer">
             <img src="https://avatars.githubusercontent.com/u/73706786?v=4" width="36" height="36" alt="">
@@ -142,11 +149,11 @@ data:
         </div>
         <p class="muted">Homeserver URL: <code id="hs-url">https://chat.sax.lgbt</code>. Use the same username you requested. The client must collect an email address during signup.</p>
         <section class="connect" aria-labelledby="connect-heading">
-          <h3 id="connect-heading">Element with this homeserver</h3>
-          <p class="muted">These links open Element signup with the homeserver URL above prefilled.</p>
+          <h3 id="connect-heading">Get FluffyChat</h3>
+          <p class="muted">Desktop and mobile builds from the official site; then register against this homeserver with your token.</p>
           <div class="btn-row">
-            <a class="btn primary" id="open-element-web" href="#" rel="noopener noreferrer">Element (web)</a>
-            <a class="btn" id="open-element-mobile" href="#" rel="noopener noreferrer">Element (phone)</a>
+            <a class="btn primary" id="open-fluffychat" href="https://fluffychat.im" rel="noopener noreferrer">FluffyChat (download)</a>
+            <a class="btn" id="open-element-alt" href="https://element.io/download" rel="noopener noreferrer">Element (alternative)</a>
           </div>
         </section>
       </div>
@@ -195,13 +202,14 @@ data:
       }
 
       function updPreview() {
-        var u = (reqUser.value || "…").toLowerCase().replace(/[^a-z0-9._=\\-/]/g, "");
+        var u = (reqUser.value || "…").toLowerCase().replace(/[^a-z0-9._=\/-]/g, "");
         preview.textContent = "@" + (u || "…") + ":chat.sax.lgbt";
       }
       reqUser.addEventListener("input", updPreview);
       updPreview();
 
       function showInvite(token, user, server) {
+        setWaitingMode(false);
         document.getElementById("intro").hidden = true;
         document.getElementById("request").hidden = true;
         document.getElementById("waiting").hidden = true;
@@ -209,10 +217,6 @@ data:
         document.getElementById("invite-token").value = token;
         document.getElementById("invite-mxid").textContent = "@" + user + ":" + (server || "chat.sax.lgbt");
         document.getElementById("hs-url").textContent = HS;
-        document.getElementById("open-element-web").href =
-          "https://app.element.io/#/register?hs_url=" + encodeURIComponent(HS);
-        document.getElementById("open-element-mobile").href =
-          "https://mobile.element.io/element?account_provider=chat.sax.lgbt";
         document.getElementById("copy-token").onclick = function () {
           navigator.clipboard.writeText(token);
         };
@@ -225,22 +229,37 @@ data:
         return "Keep this tab open. When your request is approved, your registration token will appear on this page automatically.";
       }
 
+      function setWaitingMode(on) {
+        if (on) {
+          document.body.classList.add("join-waiting");
+        } else {
+          document.body.classList.remove("join-waiting");
+        }
+      }
+
       function showSending() {
+        setWaitingMode(true);
         document.getElementById("intro").hidden = true;
         document.getElementById("request").hidden = true;
+        document.getElementById("invite").hidden = true;
         waitingEl.hidden = false;
         waitingEl.dataset.rid = "";
         document.getElementById("waiting-title").textContent = "Sending request…";
-        document.getElementById("waiting-hint").textContent = "One moment.";
+        document.getElementById("waiting-lead").textContent = "Please wait.";
+        document.getElementById("waiting-hint").textContent = "";
         document.getElementById("waiting-tick").textContent = "";
       }
 
       function showWaiting(rid, hasEmail) {
+        setWaitingMode(true);
         document.getElementById("intro").hidden = true;
         document.getElementById("request").hidden = true;
+        document.getElementById("invite").hidden = true;
         waitingEl.hidden = false;
         waitingEl.dataset.rid = rid;
         document.getElementById("waiting-title").textContent = "Waiting for approval";
+        document.getElementById("waiting-lead").textContent =
+          "Your request was sent. An admin will review it before a registration token is issued.";
         document.getElementById("waiting-hint").textContent = waitingHint(hasEmail);
         document.getElementById("waiting-tick").textContent = "Checking for approval…";
       }
@@ -248,6 +267,7 @@ data:
       function resetToForm() {
         stopPolling();
         clearWaitSession();
+        setWaitingMode(false);
         waitingEl.hidden = true;
         waitingEl.dataset.rid = "";
         document.getElementById("intro").hidden = false;
@@ -321,20 +341,62 @@ data:
         poll();
       }
 
+      var token = params.get("token");
+      var user = params.get("user");
+      if (token) {
+        stopPolling();
+        clearWaitSession();
+        showInvite(token, user || "…", "chat.sax.lgbt");
+        return;
+      }
+
+      var rid = params.get("rid");
+      var wsig = params.get("wsig");
+      if (rid && wsig) {
+        var hasMail = params.get("mail") === "1";
+        try {
+          var stored = JSON.parse(sessionStorage.getItem(SS_KEY) || "null");
+          if (stored && stored.rid && stored.rid !== rid) {
+            clearWaitSession();
+          } else if (stored && stored.rid === rid && stored.mail) {
+            hasMail = true;
+          }
+        } catch (e) {}
+        startPolling(rid, wsig, hasMail);
+        reqForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+        });
+        return;
+      }
+      clearWaitSession();
+
       reqForm.addEventListener("submit", function (e) {
         e.preventDefault();
         formErr.hidden = true;
         stopPolling();
         clearWaitSession();
         var hasEmail = document.getElementById("req-email").value.trim() !== "";
+        var user = (reqUser.value || "").trim().toLowerCase();
+        if (!user) {
+          showFormError("Username is required.");
+          return;
+        }
+        var body = new URLSearchParams();
+        body.set("username", user);
+        body.set("email", document.getElementById("req-email").value.trim());
+        body.set("display_name", (reqForm.querySelector("[name=display_name]") || {}).value || "");
         showSending();
         reqSubmit.disabled = true;
         reqSubmit.textContent = "Sending…";
         fetch("/matrix/request", {
           method: "POST",
-          body: new FormData(reqForm),
+          body: body,
           credentials: "same-origin",
-          headers: { Accept: "application/json", "X-Requested-With": "fetch" }
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+            "X-Requested-With": "fetch"
+          }
         })
           .then(function (res) {
             if (!res.ok) {
@@ -362,32 +424,6 @@ data:
             showFormError(err.message || "Could not send request.");
           });
       });
-
-      var token = params.get("token");
-      var user = params.get("user");
-      if (token) {
-        stopPolling();
-        clearWaitSession();
-        showInvite(token, user || "…", "chat.sax.lgbt");
-        return;
-      }
-
-      var rid = params.get("rid");
-      var wsig = params.get("wsig");
-      if (rid && wsig) {
-        var hasMail = params.get("mail") === "1";
-        try {
-          var stored = JSON.parse(sessionStorage.getItem(SS_KEY) || "null");
-          if (stored && stored.rid && stored.rid !== rid) {
-            clearWaitSession();
-          } else if (stored && stored.rid === rid && stored.mail) {
-            hasMail = true;
-          }
-        } catch (e) {}
-        startPolling(rid, wsig, hasMail);
-      } else {
-        clearWaitSession();
-      }
     })();
       </script>
     </body>

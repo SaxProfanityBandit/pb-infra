@@ -42,9 +42,12 @@ spec:
       cluster:
         node-id: "0"
       http:
-        use-x-forwarded: false
+        use-x-forwarded: true
       server:
         hostname: mail.sax.lgbt
+        allowed-ip:
+          "10.42.0.1/16": ""
+          "10.254.0.0/16": ""
 
     persistence:
       enabled: true
