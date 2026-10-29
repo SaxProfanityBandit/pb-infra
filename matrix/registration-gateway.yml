@@ -47,10 +47,10 @@ spec:
               mountPath: /gateway
           resources:
             limits:
-              cpu: 100m
+              cpu: 1000m
               memory: 512Mi
             requests:
-              cpu: 50m
+              cpu: 250m
               memory: 128Mi
       containers:
         - name: gateway
