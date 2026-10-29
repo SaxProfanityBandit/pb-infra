@@ -24,9 +24,11 @@ spec:
   values:
     fullnameOverride: mmr
     replicaCount: 1
+    imagePullSecrets:
+      - name: ghcr-sax
     image:
-      repository: ghcr.io/t2bot/matrix-media-repo
-      tag: v1.3.8
+      repository: ghcr.io/saxprofanitybandit/matrix-media-repo-liu-rgw
+      tag: v1.3.8-liu-rgw1
       pullPolicy: IfNotPresent
     persistence:
       enabled: false
@@ -83,3 +85,7 @@ spec:
                     hostnames:
                       - rgw.ctrl-c.liu.se
                       - sax-stack-media.rgw.ctrl-c.liu.se
+              - op: add
+                path: /spec/template/spec/imagePullSecrets
+                value:
+                  - name: ghcr-sax
