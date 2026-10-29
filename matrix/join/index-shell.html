@@ -31,6 +31,17 @@
           <p id="waiting-hint" class="muted"></p>
           <p class="wait-tick" id="waiting-tick"></p>
         </div>
+        <div id="invite" hidden class="invite-panel invite-panel--intro">
+          <div id="invite-hero" class="invite-hero" hidden>
+            <div id="invite-hero-art" class="invite-hero__art join-art" role="presentation" aria-hidden="true"></div>
+          </div>
+          <h2 id="invite-title"></h2>
+          <p id="invite-mxid" class="mxid invite-mxid"></p>
+          <label id="label-token" for="invite-token"></label>
+          <input class="token" id="invite-token" readonly>
+          <button type="button" id="copy-token"></button>
+          <div id="invite-next-steps" class="invite-next-steps"></div>
+        </div>
       </div>
     </div>
     <div id="request">
@@ -49,27 +60,6 @@
         <p id="form-err" class="err" hidden></p>
         <button type="submit" id="req-submit"></button>
       </form>
-    </div>
-    <div id="invite" hidden class="box">
-      <div id="invite-hero" class="invite-hero" hidden>
-        <div id="invite-hero-art" class="invite-hero__art join-art" role="presentation" aria-hidden="true"></div>
-      </div>
-      <p id="invite-mxid" class="mxid"></p>
-      <label id="label-token" for="invite-token"></label>
-      <input class="token" id="invite-token" readonly>
-      <button type="button" id="copy-token"></button>
-      <div id="invite-client-intro"></div>
-      <div id="invite-next-steps" class="box invite-next-steps"></div>
-      <div class="client-grid" role="list" id="client-grid"></div>
-      <div id="invite-homeserver-note"></div>
-      <section class="connect" aria-labelledby="connect-heading">
-        <h3 id="connect-heading"></h3>
-        <p class="muted" id="connect-lead"></p>
-        <div class="btn-row">
-          <a class="btn primary" id="open-element" href="#" rel="noopener noreferrer"></a>
-          <a class="btn" id="open-clients" href="#" rel="noopener noreferrer"></a>
-        </div>
-      </section>
     </div>
   </template>
   <script src="/join.js"></script>

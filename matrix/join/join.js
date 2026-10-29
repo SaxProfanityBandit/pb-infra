@@ -63,16 +63,13 @@
 
   function setPhase(phase) {
     var banner = el("site-banner");
-    if (phase === "form" || phase === "waiting") {
+    if (phase === "form" || phase === "waiting" || phase === "invite") {
       if (banner) {
         banner.hidden = false;
         banner.classList.remove("site-banner--out");
       }
-    } else if (phase === "invite") {
-      if (banner) {
-        banner.classList.add("site-banner--out");
-        banner.hidden = true;
-      }
+    }
+    if (phase === "invite") {
       var hero = el("invite-hero");
       var heroArt = el("invite-hero-art");
       if (hero && heroArt && heroArt.style.backgroundImage) {
@@ -124,7 +121,7 @@
     el("req-submit").textContent = (page.request && page.request.submit) || "";
     el("email-hint").textContent = sh.email_hint_optional || "";
     el("display-hint").textContent = sh.display_hint_optional || "";
-    el("invite-client-intro").innerHTML = (page.invite && page.invite.client_intro_html) || "";
+    el("invite-title").textContent = (page.invite && page.invite.title) || "";
     var nextSteps = el("invite-next-steps");
     if (nextSteps) {
       var ns = page.invite && page.invite.next_steps_html;
@@ -136,29 +133,6 @@
         nextSteps.hidden = true;
       }
     }
-    el("invite-homeserver-note").innerHTML =
-      (page.invite && page.invite.homeserver_note_html) || "";
-    var conn = page.invite && page.invite.connect;
-    el("connect-heading").textContent = (conn && conn.heading) || "";
-    el("connect-lead").textContent = (conn && conn.lead) || "";
-    el("open-element").textContent = (conn && conn.primary_label) || "";
-    el("open-element").href = page.element_download_url || "https://element.io/download";
-    el("open-clients").textContent = (conn && conn.secondary_label) || "";
-    el("open-clients").href = page.matrix_clients_url || "https://matrix.org/ecosystem/clients/";
-    var grid = el("client-grid");
-    grid.innerHTML = "";
-    (page.clients || []).forEach(function (c) {
-      var a = document.createElement("a");
-      a.className = "client-card" + (c.recommended ? " recommended" : "");
-      a.href = c.href;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.innerHTML =
-        '<img src="' + c.img + '" width="36" height="36" alt="">' +
-        '<span class="name">' + c.name + "</span>" +
-        '<span class="get">' + c.get + "</span>";
-      grid.appendChild(a);
-    });
     boot(page);
   }
 
@@ -235,15 +209,26 @@
 
     function showInvite(token, user, server) {
       setWaitingMode(false);
+      document.body.classList.add("join-invite");
       setPhase("invite");
-      el("intro").hidden = true;
       el("request").hidden = true;
       el("waiting").hidden = true;
+      var introBody = el("intro-body");
+      if (introBody) introBody.hidden = true;
       el("invite").hidden = false;
+      var hero = el("invite-hero");
+      var heroArt = el("invite-hero-art");
+      if (hero && heroArt && heroArt.style.backgroundImage) {
+        hero.hidden = false;
+      }
       el("invite-token").value = token;
       el("invite-mxid").textContent = "@" + user + ":" + (server || serverName);
-      var hsEl = el("hs-url");
-      if (hsEl) hsEl.textContent = page.homeserver_url || HS;
+      var hs = page.homeserver_url || HS;
+      var regLink = el("invite-register-link");
+      if (regLink) {
+        regLink.href =
+          "https://app.element.io/#/register?hs_url=" + encodeURIComponent(hs.replace(/\/$/, ""));
+      }
       el("copy-token").onclick = function () {
         navigator.clipboard.writeText(token);
       };
@@ -288,6 +273,7 @@
       stopPolling();
       clearWaitSession();
       setWaitingMode(false);
+      document.body.classList.remove("join-invite");
       setPhase("form");
       var hero = el("invite-hero");
       if (hero) hero.hidden = true;

@@ -74,8 +74,10 @@ spec:
           cpu: 50m
           memory: 64Mi
     extraConfig:
+      autocreate_auto_join_rooms: false
+      auto_join_mxid_localpart: sax
       auto_join_rooms:
-        - "!YnB3A2SZgqQMlIejEr8xHhxxhMC-3vBJm0Ch7ve_YmY"
+        - "#corridor:chat.sax.lgbt"
       modules:
         - module: coven_room_create_policy.CovenRoomCreatePolicy
           config:
