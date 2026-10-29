@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/join.css">
 </head>
 <body>
+  <div class="join-layout">
   <header class="site-banner" id="site-banner" hidden>
     <div class="site-banner__art join-art" id="join-banner" role="presentation" aria-hidden="true"></div>
     <div class="site-banner__veil" aria-hidden="true"></div>
@@ -14,14 +15,24 @@
   <main class="join-main" id="join-root" hidden>
     <p class="muted" id="copy-loading"></p>
   </main>
+  </div>
   <template id="join-page-tpl">
-    <div id="intro">
-      <h1 id="intro-title"></h1>
-      <div id="intro-lead"></div>
-    </div>
-    <div id="source-banner" hidden class="box">
-      <p><strong id="discord-banner-title"></strong></p>
-      <div id="discord-steps"></div>
+    <div id="intro" class="join-intro-stack">
+      <div class="join-intro-panel">
+        <div id="intro-body">
+          <h1 id="intro-title"></h1>
+          <div id="intro-lead"></div>
+          <div id="corridor-join" class="corridor-join" hidden></div>
+        </div>
+        <div id="waiting" hidden class="wait-panel wait-panel--intro" aria-live="polite" aria-busy="true" role="status" data-rid="">
+          <div id="wait-art" class="wait-art join-art" role="presentation" aria-hidden="true" hidden></div>
+          <div class="loader" id="wait-spinner" aria-hidden="true"></div>
+          <h2 id="waiting-title"></h2>
+          <p class="wait-lead" id="waiting-lead" hidden></p>
+          <p id="waiting-hint" class="muted"></p>
+          <p class="wait-tick" id="waiting-tick"></p>
+        </div>
+      </div>
     </div>
     <div id="request">
       <h2 id="request-title"></h2>
@@ -40,14 +51,6 @@
         <button type="submit" id="req-submit"></button>
       </form>
     </div>
-    <div id="waiting" hidden class="wait-panel" aria-live="polite" aria-busy="true" role="status" data-rid="">
-      <div id="wait-art" class="wait-art join-art" role="presentation" aria-hidden="true" hidden></div>
-      <div class="loader" id="wait-spinner" aria-hidden="true"></div>
-      <h2 id="waiting-title"></h2>
-      <p class="wait-lead" id="waiting-lead"></p>
-      <p id="waiting-hint" class="muted"></p>
-      <p class="wait-tick" id="waiting-tick"></p>
-    </div>
     <div id="invite" hidden class="box">
       <div id="invite-hero" class="invite-hero" hidden>
         <div id="invite-hero-art" class="invite-hero__art join-art" role="presentation" aria-hidden="true"></div>
@@ -57,6 +60,7 @@
       <input class="token" id="invite-token" readonly>
       <button type="button" id="copy-token"></button>
       <div id="invite-client-intro"></div>
+      <div id="invite-next-steps" class="box invite-next-steps"></div>
       <div class="client-grid" role="list" id="client-grid"></div>
       <div id="invite-homeserver-note"></div>
       <section class="connect" aria-labelledby="connect-heading">

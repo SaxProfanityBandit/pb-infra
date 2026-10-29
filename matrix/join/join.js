@@ -70,7 +70,7 @@
     } else if (phase === "waiting") {
       if (banner) {
         banner.hidden = false;
-        banner.classList.add("site-banner--out");
+        banner.classList.remove("site-banner--out");
       }
     } else if (phase === "invite") {
       if (banner) {
@@ -112,17 +112,35 @@
     }
     el("intro-title").textContent = (COPY.intro && COPY.intro.title) || "";
     el("intro-lead").innerHTML = (COPY.intro && COPY.intro.lead_html) || "";
+    var corridorJoin = el("corridor-join");
+    if (corridorJoin) {
+      var cj = COPY.corridor_join;
+      if (cj && cj.html) {
+        corridorJoin.innerHTML = cj.html;
+        corridorJoin.hidden = false;
+      } else {
+        corridorJoin.innerHTML = "";
+        corridorJoin.hidden = true;
+      }
+    }
     el("request-title").textContent = (COPY.request && COPY.request.title) || "";
     el("request-lead").innerHTML = (COPY.request && COPY.request.lead_html) || "";
     el("req-submit").textContent = (COPY.request && COPY.request.submit) || "";
     el("email-hint").textContent = sh.email_hint_optional || "";
     el("display-hint").textContent = sh.display_hint_optional || "";
-    el("discord-banner-title").textContent =
-      (COPY.discord && COPY.discord.banner_title) || "";
-    el("discord-steps").innerHTML =
-      (COPY.discord && COPY.discord.steps_html) || "";
     el("invite-client-intro").innerHTML =
       (COPY.invite && COPY.invite.client_intro_html) || "";
+    var nextSteps = el("invite-next-steps");
+    if (nextSteps) {
+      var ns = COPY.invite && COPY.invite.next_steps_html;
+      if (ns) {
+        nextSteps.innerHTML = ns;
+        nextSteps.hidden = false;
+      } else {
+        nextSteps.innerHTML = "";
+        nextSteps.hidden = true;
+      }
+    }
     el("invite-homeserver-note").innerHTML =
       (COPY.invite && COPY.invite.homeserver_note_html) || "";
     el("connect-heading").textContent =
@@ -176,15 +194,15 @@
       } catch (e) {}
     }
     function applyJoinSource() {
-      if (!joinSource || !/^[a-z0-9-]{1,32}$/.test(joinSource)) return;
-      sourceInput.value = joinSource;
-      try {
-        sessionStorage.setItem(SS_SOURCE, joinSource);
-      } catch (e) {}
+      if (joinSource && /^[a-z0-9-]{1,32}$/.test(joinSource)) {
+        sourceInput.value = joinSource;
+        try {
+          sessionStorage.setItem(SS_SOURCE, joinSource);
+        } catch (e) {}
+      }
       if (joinSource === "discord-migration" && COPY.discord) {
         el("intro-title").textContent = COPY.discord.intro.title;
         el("intro-lead").innerHTML = COPY.discord.intro.lead_html;
-        el("source-banner").hidden = false;
         el("request-title").textContent = COPY.discord.request.title;
         el("request-lead").innerHTML = COPY.discord.request.lead_html;
         el("email-hint").textContent = COPY.discord.request.email_hint;
@@ -248,28 +266,32 @@
     function showSending() {
       setWaitingMode(true);
       setJoinPhase("waiting");
-      el("intro").hidden = true;
       el("request").hidden = true;
       el("invite").hidden = true;
+      var introBody = el("intro-body");
+      if (introBody) introBody.hidden = true;
       waitingEl.hidden = false;
       waitingEl.dataset.rid = "";
       el("waiting-title").textContent = COPY.waiting.sending_title;
-      el("waiting-lead").textContent = COPY.waiting.sending_lead;
-      el("waiting-hint").textContent = "";
+      el("waiting-hint").textContent = COPY.waiting.sending_lead || "";
       el("waiting-tick").textContent = "";
+      var spinner = el("wait-spinner");
+      if (spinner) spinner.hidden = false;
     }
     function showWaiting(rid, hasEmail) {
       setWaitingMode(true);
       setJoinPhase("waiting");
-      el("intro").hidden = true;
       el("request").hidden = true;
       el("invite").hidden = true;
+      var introBody = el("intro-body");
+      if (introBody) introBody.hidden = true;
       waitingEl.hidden = false;
       waitingEl.dataset.rid = rid;
       el("waiting-title").textContent = COPY.waiting.title;
-      el("waiting-lead").textContent = COPY.waiting.lead;
       el("waiting-hint").textContent = waitingHint(hasEmail);
       el("waiting-tick").textContent = COPY.waiting.tick;
+      var spinner = el("wait-spinner");
+      if (spinner) spinner.hidden = true;
     }
     function resetToForm() {
       stopPolling();
@@ -280,7 +302,8 @@
       if (hero) hero.hidden = true;
       waitingEl.hidden = true;
       waitingEl.dataset.rid = "";
-      el("intro").hidden = false;
+      var introBody = el("intro-body");
+      if (introBody) introBody.hidden = false;
       el("request").hidden = false;
     }
     function showFormError(msg) {
