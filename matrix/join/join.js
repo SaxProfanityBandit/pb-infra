@@ -224,10 +224,22 @@
       el("invite-token").value = token;
       el("invite-mxid").textContent = "@" + user + ":" + (server || serverName);
       var hs = page.homeserver_url || HS;
+      var webReg =
+        page.element_web_register_url || "https://app.element.io/#/register";
+      var mobileReg =
+        page.element_mobile_register_url ||
+        "https://mobile.element.io/?hs_url=" + encodeURIComponent(hs.replace(/\/$/, ""));
       var regLink = el("invite-register-link");
       if (regLink) {
-        regLink.href =
-          "https://app.element.io/#/register?hs_url=" + encodeURIComponent(hs.replace(/\/$/, ""));
+        regLink.href = webReg;
+        regLink.target = "_blank";
+        regLink.rel = "noopener";
+      }
+      var mobileLink = el("invite-register-mobile");
+      if (mobileLink) {
+        mobileLink.href = mobileReg;
+        mobileLink.target = "_blank";
+        mobileLink.rel = "noopener";
       }
       el("copy-token").onclick = function () {
         navigator.clipboard.writeText(token);

@@ -17,7 +17,8 @@ spec:
   values:
     replicaCount: 1
     image:
-      tag: "7.3.2"
+      repository: ghcr.io/matrix-org/matrix-hookshot
+      tag: "7.5.0"
     hookshot:
       existingConfigMap: hookshot-config
       config: {}
