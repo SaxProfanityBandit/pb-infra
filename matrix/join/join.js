@@ -4,6 +4,11 @@
   var HS = "https://chat.sax.lgbt";
 
   function el(id) {
+    var root = document.getElementById("join-root");
+    if (root && id !== "join-root" && id !== "join-page-tpl") {
+      var scoped = root.querySelector("#" + CSS.escape(id));
+      if (scoped) return scoped;
+    }
     return document.getElementById(id);
   }
 
@@ -12,8 +17,10 @@
     var root = el("join-root");
     root.innerHTML = "";
     root.appendChild(tpl.content.cloneNode(true));
+    while (tpl.content.firstChild) {
+      tpl.content.removeChild(tpl.content.firstChild);
+    }
     root.hidden = false;
-    el("copy-loading").hidden = true;
   }
 
   function shell(COPY) {
@@ -103,20 +110,28 @@
         bannerWrap.hidden = true;
       }
     }
-    el("intro-title").textContent = COPY.intro.title;
-    el("intro-lead").innerHTML = COPY.intro.lead_html;
-    el("request-title").textContent = COPY.request.title;
-    el("request-lead").innerHTML = COPY.request.lead_html;
-    el("req-submit").textContent = COPY.request.submit;
+    el("intro-title").textContent = (COPY.intro && COPY.intro.title) || "";
+    el("intro-lead").innerHTML = (COPY.intro && COPY.intro.lead_html) || "";
+    el("request-title").textContent = (COPY.request && COPY.request.title) || "";
+    el("request-lead").innerHTML = (COPY.request && COPY.request.lead_html) || "";
+    el("req-submit").textContent = (COPY.request && COPY.request.submit) || "";
     el("email-hint").textContent = sh.email_hint_optional || "";
     el("display-hint").textContent = sh.display_hint_optional || "";
-    el("discord-banner-title").textContent = COPY.discord.banner_title;
-    el("discord-steps").innerHTML = COPY.discord.steps_html;
-    el("invite-client-intro").innerHTML = COPY.invite.client_intro_html;
-    el("invite-homeserver-note").innerHTML = COPY.invite.homeserver_note_html;
-    el("connect-heading").textContent = COPY.invite.connect.heading;
-    el("connect-lead").textContent = COPY.invite.connect.lead;
-    el("open-element").textContent = COPY.invite.connect.primary_label;
+    el("discord-banner-title").textContent =
+      (COPY.discord && COPY.discord.banner_title) || "";
+    el("discord-steps").innerHTML =
+      (COPY.discord && COPY.discord.steps_html) || "";
+    el("invite-client-intro").innerHTML =
+      (COPY.invite && COPY.invite.client_intro_html) || "";
+    el("invite-homeserver-note").innerHTML =
+      (COPY.invite && COPY.invite.homeserver_note_html) || "";
+    el("connect-heading").textContent =
+      (COPY.invite && COPY.invite.connect && COPY.invite.connect.heading) || "";
+    el("connect-lead").textContent =
+      (COPY.invite && COPY.invite.connect && COPY.invite.connect.lead) || "";
+    el("open-element").textContent =
+      (COPY.invite && COPY.invite.connect && COPY.invite.connect.primary_label) ||
+      "";
     el("open-element").href = COPY.element_download_url || "https://element.io/download";
     el("open-clients").textContent = COPY.invite.connect.secondary_label;
     el("open-clients").href = COPY.matrix_clients_url || "https://matrix.org/ecosystem/clients/";
