@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cdn-edge-matrix
+  namespace: cdn
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: cdn-edge-matrix
+  template:
+    metadata:
+      labels:
+        app: cdn-edge-matrix
+    spec:
+      hostAliases:
+        - ip: 10.255.132.92
+          hostnames:
+            - rgw.ctrl-c.liu.se
+            - sax-stack-media.rgw.ctrl-c.liu.se
+      containers:
+        - name: s3-gateway
+          image: nginxinc/nginx-s3-gateway:unprivileged-oss-20261014
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: cdn-rgw
+          env:
+            # MMR publicBaseUrl is https://cdn.sax.lgbt/matrix/ but S3 keys are object ids at bucket root.
+            - name: STRIP_LEADING_DIRECTORY_PATH
+              value: "/matrix(?=/|$)"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi

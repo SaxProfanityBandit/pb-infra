@@ -10,9 +10,15 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`cdn.sax.lgbt`) && (PathPrefix(`/public`) || PathPrefix(`/matrix`))
+      match: Host(`cdn.sax.lgbt`) && PathPrefix(`/public`)
       services:
         - name: cdn-edge
+          kind: Service
+          port: http
+    - kind: Rule
+      match: Host(`cdn.sax.lgbt`) && PathPrefix(`/matrix`)
+      services:
+        - name: cdn-edge-matrix
           kind: Service
           port: http
   tls:

@@ -3,5 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yml
   - deployment.yml
+  - deployment-matrix.yml
   - service.yml
+  - service-matrix.yml
   - ingress_cdn.yml

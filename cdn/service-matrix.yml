@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cdn-edge-matrix
+  namespace: cdn
+spec:
+  selector:
+    app: cdn-edge-matrix
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

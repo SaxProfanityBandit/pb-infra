@@ -19,7 +19,7 @@ spec:
         - ip: 10.255.132.92
           hostnames:
             - rgw.ctrl-c.liu.se
-            - foundryvtt-data.rgw.ctrl-c.liu.se
+            - sax-stack-media.rgw.ctrl-c.liu.se
       containers:
         - name: s3-gateway
           image: nginxinc/nginx-s3-gateway:unprivileged-oss-20261014
