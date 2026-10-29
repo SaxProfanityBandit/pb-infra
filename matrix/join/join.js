@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-  var COPY_URL = "https://cdn.sax.lgbt/public/matrix/join/join-copy.json";
+  var COPY_URL = "/join/copy.json";
   var HS = "https://chat.sax.lgbt";
 
   function el(id) {
@@ -410,7 +410,13 @@
       applyCopy(COPY);
     })
     .catch(function () {
+      var root = el("join-root");
+      if (root) root.hidden = false;
       var errEl = el("copy-loading");
-      if (errEl) errEl.hidden = true;
+      if (errEl) {
+        errEl.textContent =
+          "Could not load registration copy. Try again later.";
+        errEl.hidden = false;
+      }
     });
 })();
