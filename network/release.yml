@@ -8,12 +8,16 @@ spec:
   chart:
     spec:
       chart: traefik
-      version: '~21'
+      version: "27.0.2"
       sourceRef:
         kind: HelmRepository
         name: traefik
         namespace: network
+  timeout: 15m
   values:
+    image:
+      tag: v2.11.60
+      pullPolicy: IfNotPresent
     updateStrategy:
       type: Recreate
     persistence:
@@ -66,7 +70,8 @@ spec:
         memory: 512Mi
     ports:
       web:
-        redirectTo: websecure
+        redirectTo:
+          port: websecure
       websecure:
         tls:
           enabled: true
