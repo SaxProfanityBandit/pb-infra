@@ -77,27 +77,32 @@ spec:
           enabled: true
       imap:
         port: 10993
-        expose: true
+        expose:
+          default: true
         exposedPort: 993
         protocol: TCP
       submission:
         port: 10587
-        expose: true
+        expose:
+          default: true
         exposedPort: 587
         protocol: TCP
       submissions:
         port: 10465
-        expose: true
+        expose:
+          default: true
         exposedPort: 465
         protocol: TCP
       smtp:
         port: 10025
-        expose: true
+        expose:
+          default: true
         exposedPort: 25
         protocol: TCP
       sftpgo:
         port: 12022
-        expose: true
+        expose:
+          default: true
         exposedPort: 22
         protocol: TCP
     ingressRoute:
