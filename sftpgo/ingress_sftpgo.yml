@@ -11,6 +11,9 @@ spec:
   routes:
     - kind: Rule
       match: Host(`files.sax.lgbt`)
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: sftpgo
           kind: Service

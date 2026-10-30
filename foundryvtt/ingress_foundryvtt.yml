@@ -11,6 +11,9 @@ spec:
   routes:
   - kind: Rule
     match: Host(`foundry.sax.lgbt`)
+    middlewares:
+      - name: default-headers
+        namespace: network
     services:
       - name: foundryvtt-foundry-vtt
         kind: Service

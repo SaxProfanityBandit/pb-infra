@@ -12,6 +12,9 @@ spec:
     - kind: Rule
       match: Host(`chat.sax.lgbt`) && (PathPrefix(`/_matrix/media`) || PathPrefix(`/_matrix/client/v1/media`) || PathPrefix(`/_matrix/federation/v1/media`))
       priority: 110
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: mmr
           kind: Service
@@ -19,6 +22,9 @@ spec:
     - kind: Rule
       match: Host(`chat.sax.lgbt`) && PathPrefix(`/.well-known/`)
       priority: 100
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: synapse-wellknown-lighttpd
           kind: Service
@@ -26,6 +32,9 @@ spec:
     - kind: Rule
       match: Host(`chat.sax.lgbt`) && PathPrefix(`/matrix/request`)
       priority: 95
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: registration-gateway
           kind: Service
@@ -33,6 +42,9 @@ spec:
     - kind: Rule
       match: Host(`chat.sax.lgbt`) && PathPrefix(`/join/via/kutt/`)
       priority: 94
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: registration-gateway
           kind: Service
@@ -40,12 +52,18 @@ spec:
     - kind: Rule
       match: Host(`chat.sax.lgbt`) && (PathPrefix(`/join`) || Path(`/join`))
       priority: 90
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: chat-join-landing
           kind: Service
           port: http
     - kind: Rule
       match: Host(`chat.sax.lgbt`)
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: synapse-matrix-synapse
           kind: Service

@@ -5,5 +5,4 @@ resources:
   - release.yml
   - default-headers.yml
   - ingress_dashboard.yml
-  - ingress_traefik.yml
   - traefik_middleware.yml

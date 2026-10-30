@@ -12,6 +12,9 @@ spec:
     - kind: Rule
       match: Host(`approve.sax.lgbt`) && PathPrefix(`/matrix/`)
       priority: 100
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: registration-gateway
           kind: Service

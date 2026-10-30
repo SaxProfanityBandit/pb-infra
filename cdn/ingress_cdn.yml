@@ -11,12 +11,18 @@ spec:
   routes:
     - kind: Rule
       match: Host(`cdn.sax.lgbt`) && PathPrefix(`/public`)
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: cdn-edge
           kind: Service
           port: http
     - kind: Rule
       match: Host(`cdn.sax.lgbt`) && PathPrefix(`/matrix`)
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: cdn-edge-matrix
           kind: Service

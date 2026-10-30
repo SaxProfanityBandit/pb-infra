@@ -8,11 +8,12 @@ metadata:
 spec:
   entryPoints:
   - websecure
-  - web
   routes:
   - kind: Rule
     match: Host(`traefik.sax.lgbt`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
     middlewares:
+      - name: default-headers
+        namespace: network
       - name: traefik-dashboard-basicauth
         namespace: network
     services:

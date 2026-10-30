@@ -11,6 +11,9 @@ spec:
   routes:
     - kind: Rule
       match: Host(`links.rickardsahlgren.name`) || Host(`links.sax.lgbt`)
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: kutt
           kind: Service

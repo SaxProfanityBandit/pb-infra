@@ -11,6 +11,9 @@ spec:
   routes:
     - kind: Rule
       match: Host(`rickardsahlgren.name`) || Host(`www.rickardsahlgren.name`)
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: site
           kind: Service

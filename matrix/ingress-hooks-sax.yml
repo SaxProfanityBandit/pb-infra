@@ -11,6 +11,9 @@ spec:
   routes:
     - kind: Rule
       match: Host(`hooks.sax.lgbt`) && PathPrefix(`/webhook`)
+      middlewares:
+        - name: default-headers
+          namespace: network
       services:
         - name: hookshot
           kind: Service
