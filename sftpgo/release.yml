@@ -18,12 +18,14 @@ spec:
   chart:
     spec:
       chart: sftpgo
-      version: "0.44.0"
+      version: "0.48.0"
       sourceRef:
         kind: HelmRepository
         name: sftpgo-charts
         namespace: sftpgo
   values:
+    image:
+      tag: v2.7.6
     sftpd:
       enabled: true
     ftpd:

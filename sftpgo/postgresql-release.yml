@@ -19,7 +19,9 @@ spec:
       security:
         allowInsecureImages: true
     image:
-      tag: latest
+      # Pin live PG 18.6 (was `latest`); digest matches cluster before Block B.
+      tag: 18.6.0-debian-12-r6
+      digest: sha256:6431f1bfa8f0aca2976669a5f84d4233b4f4e6e26a035b08d0782aea733c5518
     architecture: standalone
     auth:
       username: sftpgo
