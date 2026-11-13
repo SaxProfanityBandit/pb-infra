@@ -96,11 +96,11 @@ spec:
         - email
       verify_emails: false
       email:
-        smtp_host: stalwart-mailserver.mailserver.svc.cluster.local
+        smtp_host: mail.sax.lgbt
         smtp_port: 587
-        smtp_user: synapse
+        smtp_user: sax
         require_transport_security: true
-        notif_from: "Sax Chat <noreply@chat.sax.lgbt>"
+        notif_from: "Sax Chat <me@sax.lgbt>"
         enable_notifs: false
       app_service_config_files:
         - /synapse/config/conf.d/hookshot-registration.yaml

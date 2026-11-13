@@ -26,6 +26,8 @@ spec:
   values:
     image:
       tag: v2.7.6
+    deploymentStrategy:
+      type: Recreate
     sftpd:
       enabled: true
     ftpd:

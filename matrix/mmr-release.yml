@@ -44,6 +44,9 @@ spec:
       enabled: false
     extraRepo:
       useForwardedHost: true
+    config:
+      rateLimit:
+        enabled: false
     homeservers:
       chat.sax.lgbt:
         csApi: http://synapse-matrix-synapse.matrix.svc.cluster.local:8008/

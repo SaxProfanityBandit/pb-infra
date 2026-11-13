@@ -32,6 +32,8 @@ spec:
           env:
             - name: STRIP_LEADING_DIRECTORY_PATH
               value: "/matrix(?=/|$)"
+            - name: CORS_ENABLED
+              value: "true"
           readinessProbe:
             httpGet:
               path: /health
