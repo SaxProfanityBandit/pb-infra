@@ -53,12 +53,16 @@ spec:
         adminApiKind: synapse
         signingKeyPath: /synapse-signing/signing.key
     extraVolumes:
-      - name: synapse-signing
+      - name: synapse-signing-src
         secret:
           secretName: synapse-signingkey
+      - name: synapse-signing
+        emptyDir: {}
     extraVolumeMounts:
       - name: synapse-signing
         mountPath: /synapse-signing
+      - name: synapse-signing-src
+        mountPath: /synapse-signing-src
         readOnly: true
     service:
       type: ClusterIP
@@ -92,3 +96,19 @@ spec:
                 path: /spec/template/spec/imagePullSecrets
                 value:
                   - name: ghcr-sax
+              - op: add
+                path: /spec/template/spec/initContainers
+                value:
+                  - name: convert-signing-key
+                    image: ghcr.io/saxprofanitybandit/matrix-media-repo-liu-rgw:v1.3.8-liu-rgw1
+                    imagePullPolicy: IfNotPresent
+                    command:
+                      - sh
+                      - -ec
+                      - generate_signing_key -input /synapse-signing-src/signing.key -format mmr -output /synapse-signing/signing.key
+                    volumeMounts:
+                      - name: synapse-signing-src
+                        mountPath: /synapse-signing-src
+                        readOnly: true
+                      - name: synapse-signing
+                        mountPath: /synapse-signing
