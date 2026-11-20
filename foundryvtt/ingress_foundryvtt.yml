@@ -18,6 +18,7 @@ spec:
       - name: foundryvtt-foundry-vtt
         kind: Service
         port: http
+        serversTransport: foundry-long
   tls:
     certResolver: cert-resolver
     domains:

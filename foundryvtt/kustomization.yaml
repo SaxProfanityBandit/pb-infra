@@ -3,4 +3,5 @@ kind: Kustomization
 resources:
   - repository.yml
   - release.yml
+  - servers-transport.yml
   - ingress_foundryvtt.yml

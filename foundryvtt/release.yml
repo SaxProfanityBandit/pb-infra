@@ -28,7 +28,7 @@ spec:
       s3:
         enabled: true
         existingSecret: foundryvtt-s3
-      version: '14.369'
+      version: '14.370'
     service:
       tls: false
     persistence:
@@ -61,6 +61,12 @@ spec:
                     hostnames:
                       - rgw.ctrl-c.liu.se
                       - foundryvtt-data.rgw.ctrl-c.liu.se
+              - op: replace
+                path: /spec/template/spec/containers/0/readinessProbe/timeoutSeconds
+                value: 10
+              - op: replace
+                path: /spec/template/spec/containers/0/livenessProbe/timeoutSeconds
+                value: 10
               - op: add
                 path: /spec/template/spec/volumes/-
                 value:
